@@ -1,8 +1,8 @@
 #ifndef TCP_CLIENT_H
 #define TCP_CLIENT_H
 
-#include "pdu_base.h"
-#include "pdu_util.h"
+#include "../../pdu_base.h"
+#include "../../pdu_util.h"
 #include <string>
 #include <vector>
 
