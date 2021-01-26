@@ -28,25 +28,6 @@ TcpClient::~TcpClient() {
     }
 }
 
-void TcpClient::OnConnect() {
-    if (m_connect_state != nullptr) {
-        m_connect_state(0, "tcp client connect success");
-    }
-}
-
-void TcpClient::OnDisconnect() {
-    if (m_connect_state != nullptr) {
-        m_connect_state(-1, "tcp client connect fail");
-    }
-}
-
-
-void TcpClient::OnReceiver(PDUBase &base) {
-    if (m_receive != nullptr) {
-        m_receive(base);
-    }
-}
-
 void TcpClient::Open() {
     m_exit = false;
     std::thread run(&TcpClient::Connect, this);// c11 create a thread to run reading.
@@ -125,6 +106,54 @@ void TcpClient::ReceiveThread() {
     }
 }
 
+
+void TcpClient::SendThread() {
+    while (m_exit) {
+        while (socketFd >= 0 && !m_queue.empty()) {
+            std::lock_guard<std::mutex> guard(mtx);
+            PDUBase base = m_queue.front();
+            m_queue.pop();
+            char *buf = nullptr;
+            int len = OnPduPack(base, buf);
+            if (len <= 0) {
+                OnDisconnect();
+                return;
+            }
+            int totalLen = 0;
+            //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
+            while (totalLen < len) {
+                int write_len = write(socketFd, buf + totalLen, len - totalLen);
+                if (write_len <= 0) {
+                    OnDisconnect();
+                    return;
+                }
+                totalLen += write_len;
+            }
+            LOGT("TCP Send Data Out.\n");
+            free(buf);
+        }
+
+        LOGT("TCP Send Thread Wait.\n");
+        std::unique_lock<std::mutex> lck(mtx);
+        interrupt.wait(lck);
+    }
+
+
+}
+
+
+void TcpClient::OnConnect() {
+    if (m_connect_state != nullptr) {
+        m_connect_state(0, "tcp client connect success");
+    }
+}
+
+void TcpClient::OnDisconnect() {
+    if (m_connect_state != nullptr) {
+        m_connect_state(-1, "tcp client connect fail");
+    }
+}
+
 void TcpClient::Connect() {
     struct sockaddr_in sad{};
 
@@ -159,38 +188,10 @@ void TcpClient::Connect() {
     run.detach();  //子线程和main thread 完全分离
 }
 
-void TcpClient::SendThread() {
-    while (m_exit) {
-        while (socketFd >= 0 && !m_queue.empty()) {
-            std::lock_guard<std::mutex> guard(mtx);
-            PDUBase base = m_queue.front();
-            m_queue.pop();
-            char *buf = nullptr;
-            int len = OnPduPack(base, buf);
-            if (len <= 0) {
-                OnDisconnect();
-                return;
-            }
-            int totalLen = 0;
-            //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
-            while (totalLen < len) {
-                int write_len = write(socketFd, buf + totalLen, len - totalLen);
-                if (write_len <= 0) {
-                    OnDisconnect();
-                    return;
-                }
-                totalLen += write_len;
-            }
-            LOGT("TCP Send Data Out.\n");
-            free(buf);
-        }
-
-        LOGT("TCP Send Thread Wait.\n");
-        std::unique_lock<std::mutex> lck(mtx);
-        interrupt.wait(lck);
+void TcpClient::OnReceiver(PDUBase &base) {
+    if (m_receive != nullptr) {
+        m_receive(base);
     }
-
-
 }
 
 
