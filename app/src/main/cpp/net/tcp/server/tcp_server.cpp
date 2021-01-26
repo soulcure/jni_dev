@@ -17,29 +17,20 @@ CSocketBase::~CSocketBase() {
 bool CSocketBase::SetBlock(int fd) {
     int flag = fcntl(fd, F_GETFL);
     flag = flag & (~O_NONBLOCK);
-    if (fcntl(fd, F_SETFL, flag) < 0) {
-        return false;
-    }
-    return true;
+    return fcntl(fd, F_SETFL, flag) >= 0;
 }
 
 bool CSocketBase::SetNonBlock(int fd) {
     int flag = fcntl(fd, F_GETFL);
     flag = flag | O_NONBLOCK;
-    if (fcntl(fd, F_SETFL, flag) < 0) {
-        return false;
-    }
-    return true;
+    return fcntl(fd, F_SETFL, flag) >= 0;
 }
 
 bool CSocketBase::SetNoDelay(int fd) {
     long bNodelay = 1;
     int ret = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char *) &bNodelay, sizeof(bNodelay));
-    if (ret < 0) {
-        return false;
-    }
+    return ret >= 0;
 
-    return true;
 }
 
 void CSocketBase::SetReuse(int sock) {

@@ -1,4 +1,3 @@
-
 #include "../../../log_util.h"
 #include "tcp_client.h"
 
@@ -18,7 +17,8 @@
 #define BUFF_LENGTH 1024*5
 
 
-TcpClient::TcpClient() {
+TcpClient::TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive)
+        : m_ip(ip), m_port(port), m_connect_state(state), m_receive(receive) {
 
 }
 
@@ -29,59 +29,40 @@ TcpClient::~TcpClient() {
 }
 
 void TcpClient::OnConnect() {
-    if (callback != nullptr) {
-        callback(0, "tcp client connect success");
+    if (m_connect_state != nullptr) {
+        m_connect_state(0, "tcp client connect success");
     }
 }
 
 void TcpClient::OnDisconnect() {
-    if (callback != nullptr) {
-        callback(-1, "tcp client connect fail");
+    if (m_connect_state != nullptr) {
+        m_connect_state(-1, "tcp client connect fail");
     }
 }
 
 
-int TcpClient::Connect(const char *ip, int port, ConnectResult listener) {
-    this->m_ip = ip;
-    this->m_port = port;
-    this->callback = listener;
-
-    struct sockaddr_in sad{};
-
-    LOGT("TCPClient connect\n");
-    memset(&sad, 0, sizeof(sockaddr));
-    sad.sin_family = AF_INET;  //使用IPV4地址
-    sad.sin_port = htons(port); //端口 host to network short
-    inet_aton(ip, &sad.sin_addr);
-
-    socketFd = socket(PF_INET, SOCK_STREAM, 0);
-
-#ifdef DEBUG
-    printf("Connecting to [%s]:[%d]...\n\n", ip, port);
-#endif
-    struct timeval time{};
-    socklen_t len = 0;
-    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
-
-    int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
-
-    LOGT("TCPClient Running %d\n", result);
-
-    if (result != 0) {
-        close(socketFd);
-        socketFd = -1;
-        OnDisconnect();
-        return result;
+void TcpClient::OnReceiver(PDUBase &base) {
+    if (m_receive != nullptr) {
+        m_receive(base);
     }
+}
 
-    std::thread run(&TcpClient::Run, this);// c11 create a thread to run reading.
+void TcpClient::Open() {
+    m_exit = false;
+    std::thread run(&TcpClient::Connect, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
-    OnConnect(); //call callback while connected.
-    return 0;
-
 }
 
-int TcpClient::SendProto(const std::vector<char> &msg, int commandId, int seqId) {
+void TcpClient::Close() {
+    m_exit = true;
+    interrupt.notify_one();
+
+    close(socketFd);
+    socketFd = -1;
+}
+
+
+void TcpClient::SendProto(const std::vector<char> &msg, int commandId, int seqId) {
     PDUBase pdu_base;
     std::shared_ptr<char> body(new char[msg.size()]);
     pdu_base.body = body;
@@ -92,50 +73,14 @@ int TcpClient::SendProto(const std::vector<char> &msg, int commandId, int seqId)
 }
 
 
-int TcpClient::Send(PDUBase &base) {
-    if (socketFd < 0)
-        return -1;
-    //build package.
-    char *buf = nullptr;
-    int len = OnPduPack(base, buf);
-    if (len <= 0)
-        return -3;
-
-    int totalLen = 0;
-    int resendNum = 0;              //发送失败当前重发次数
-
-    //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
-    while (totalLen < len) {
-        int write_len = write(socketFd, buf + totalLen, len - totalLen);
-        if (write_len <= 0) {
-            //...重发
-            resendNum++;
-            if (resendNum >= ResendNumLimit) {
-                //超过重发次数限制后，返回错误
-                free(buf);
-                return -2;
-            }
-
-            usleep(2000);
-            continue;
-        }
-
-        totalLen += write_len;
-    }
-
-    LOGT("TCP Send Data Out.");
-
-    free(buf);
-    return totalLen;
-
-}
-
-void TcpClient::OnReceive(PDUBase &base) {
-
+void TcpClient::Send(PDUBase &base) {
+    std::lock_guard<std::mutex> guard(mtx);
+    m_queue.push(base);
+    interrupt.notify_one();
 }
 
 
-void TcpClient::Run() {
+void TcpClient::ReceiveThread() {
     int total_length = 0;
     char *total_buffer = new char[BUFF_MAX];
     char *buf = new char[BUFF_LENGTH];
@@ -159,7 +104,7 @@ void TcpClient::Run() {
                 //remove read data.
                 memmove(total_buffer, total_buffer + read_size, total_length - read_size);
                 total_length -= read_size;
-                OnReceive(base);
+                OnReceiver(base);
             }
 
             printf("Received message!!: %s\n", buf);
@@ -171,19 +116,81 @@ void TcpClient::Run() {
             } else {
                 LOGD("NetClient disconnect.\n "); //len=0 对方主动断开
             }
-            /*
-             * closed
-             * finish reading block..
-             */
-            //后续应考虑重连
-            close(socketFd);// need reconnect
-            socketFd = -1;
+            Close();
             delete[]total_buffer;
             delete[]buf;
             break;
         }
 
     }
+}
+
+void TcpClient::Connect() {
+    struct sockaddr_in sad{};
+
+    LOGT("TCPClient connect\n");
+    memset(&sad, 0, sizeof(sockaddr));
+    sad.sin_family = AF_INET;  //使用IPV4地址
+    sad.sin_port = htons(m_port); //端口 host to network short
+    inet_aton(m_ip, &sad.sin_addr);
+
+    socketFd = socket(PF_INET, SOCK_STREAM, 0);
+
+#ifdef DEBUG
+    printf("Connecting to [%s]:[%d]...\n\n", m_ip, m_port);
+#endif
+    struct timeval time{};
+    socklen_t len = 0;
+    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
+
+    int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
+
+    LOGT("TCPClient Running %d\n", result);
+
+    if (result != 0) {
+        Close();
+        OnDisconnect();
+        return;
+    }
+
+    OnConnect(); //call callback while connected.
+
+    std::thread run(&TcpClient::ReceiveThread, this);// c11 create a thread to run reading.
+    run.detach();  //子线程和main thread 完全分离
+}
+
+void TcpClient::SendThread() {
+    while (m_exit) {
+        while (socketFd >= 0 && !m_queue.empty()) {
+            std::lock_guard<std::mutex> guard(mtx);
+            PDUBase base = m_queue.front();
+            m_queue.pop();
+            char *buf = nullptr;
+            int len = OnPduPack(base, buf);
+            if (len <= 0) {
+                OnDisconnect();
+                return;
+            }
+            int totalLen = 0;
+            //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
+            while (totalLen < len) {
+                int write_len = write(socketFd, buf + totalLen, len - totalLen);
+                if (write_len <= 0) {
+                    OnDisconnect();
+                    return;
+                }
+                totalLen += write_len;
+            }
+            LOGT("TCP Send Data Out.\n");
+            free(buf);
+        }
+
+        LOGT("TCP Send Thread Wait.\n");
+        std::unique_lock<std::mutex> lck(mtx);
+        interrupt.wait(lck);
+    }
+
+
 }
 
 

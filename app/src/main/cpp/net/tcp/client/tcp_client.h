@@ -5,42 +5,53 @@
 #include "../../pdu_util.h"
 #include <string>
 #include <vector>
+#include <queue>
+#include <mutex>
+#include <condition_variable>    // std::condition_variable
 
 class TcpClient : public PduUtil {
 public:
-    typedef void(*ConnectResult)(int, std::string);
+    typedef void(*OnConnectState)(int, std::string);
 
-    TcpClient();
+    typedef void (*OnReceive)(PDUBase &);
+
+    TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive);
 
     ~TcpClient();
 
-    int Send(PDUBase &base);
+    void Open();
 
-    int SendProto(const std::vector<char> &msg, int commandId, int seqId);
+    void Close();
 
-    int Connect(const char *ip, int port, ConnectResult listener);
+    void Send(PDUBase &base);
 
-    virtual void OnReceive(PDUBase &base) = 0;
+    void SendProto(const std::vector<char> &msg, int commandId, int seqId);
 
-    virtual void OnConnect();
-
-    virtual void OnDisconnect();
-
-    /***************************************
-     * this is a thread exec.
-     * similar to java.
-     */
-    void Run();
 
 private:
+    int m_port;
+    const char *m_ip;
     const int ResendNumLimit = 3;   //发送失败重发次数限制
     int socketFd;
-    ConnectResult callback;
+    bool m_exit;
+    std::queue<PDUBase> m_queue;   // 全局消息队列
+    std::mutex mtx;        // 全局互斥锁
+    std::condition_variable interrupt;
 
-protected:
-    int m_port;
-    std::string m_ip;
+    OnConnectState m_connect_state;
+    OnReceive m_receive;
 
+    void OnConnect();
+
+    void OnDisconnect();
+
+    void OnReceiver(PDUBase &base);
+
+    void Connect();
+
+    void ReceiveThread();
+
+    void SendThread();
 };
 
 #endif // TCP_CLIENT_H
