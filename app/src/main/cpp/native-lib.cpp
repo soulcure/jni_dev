@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <string>
+#include <iostream>
 #include "net/tcp/client/tcp_client.h"
 #include "log_util.h"
 
@@ -9,11 +10,16 @@ Java_com_coocaa_socket_MainActivity_stringFromJNI(
         jobject /* this */) {
     std::string hello = "Hello from C++";
 
-//    TcpClient tcpClient=new TcpClient();
-//    auto callback = [](int code, std::string message) {
-//        LOGD("tcp client connect result code:%d message=%s", code, message);
-//    };
-//    tcpClient.Connect("172.20.144.108", 34000, callback);
+    std::string ip = "172.20.144.108";
+    int port = 34000;
+    auto callback = [](int code) {
+        LOGD("tcp client connect result code:%d", code);
+    };
+    auto receive = [](PDUBase &pdu) {
+        LOGD("tcp client receive pdu");
+    };
+    auto *tcpClient = new TcpClient(ip.c_str(), port, callback, receive);
+    tcpClient->Open();
 
     return env->NewStringUTF(hello.c_str());
 }

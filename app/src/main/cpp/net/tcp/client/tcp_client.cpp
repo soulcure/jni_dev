@@ -181,13 +181,13 @@ void TcpClient::SendThread() {
 
 void TcpClient::OnConnect() {
     if (m_connect_state != nullptr) {
-        m_connect_state(0, "tcp client connect success");
+        m_connect_state(0);
     }
 }
 
 void TcpClient::OnDisconnect() {
     if (m_connect_state != nullptr) {
-        m_connect_state(-1, "tcp client connect fail");
+        m_connect_state(-1);
     }
 }
 
