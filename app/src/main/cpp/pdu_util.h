@@ -23,7 +23,7 @@ public:
     /***********************************************************
      * @pdu封包
      */
-    virtual int OnPduPack(PDUBase &base, char *&buf);
+    virtual int OnPduPack(PDUBase &base, char *&outBuffer);
 
     int SetUserId(char *buf, int userId);
 

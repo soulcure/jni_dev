@@ -146,12 +146,30 @@ void TcpClient::Run() {
         memset(buf, 0, BUFF_LENGTH);
         len = read(socketFd, buf, BUFF_LENGTH);
 
-        if (len <= 0) {
-            if (len < 0) {
+        if (len > 0) {  //读取到数据
+            if (total_length + len > BUFF_MAX) {
+                total_length = 0;
+                continue;
+            }
+            memcpy(total_buffer + total_length, buf, len);
+            total_length += len;
+
+            int read_size;
+            while ((read_size = OnPduParse(total_buffer, total_length, base)) > 0) {
+                //remove read data.
+                memmove(total_buffer, total_buffer + read_size, total_length - read_size);
+                total_length -= read_size;
+                OnReceive(base);
+            }
+
+            printf("Received message!!: %s\n", buf);
+            usleep(1);
+        } else {
+            if (len < 0) {   //len<0 网络错误断开
                 char *msg = strerror(errno);
                 printf("NetClient Msg:%s\n", msg);
             } else {
-                LOGD("NetClient disconnect.\n ");
+                LOGD("NetClient disconnect.\n "); //len=0 对方主动断开
             }
             /*
              * closed
@@ -165,22 +183,6 @@ void TcpClient::Run() {
             break;
         }
 
-        if (total_length + len > BUFF_MAX) {
-            total_length = 0;
-            continue;
-        }
-        memcpy(total_buffer + total_length, buf, len);
-        total_length += len;
-        int read_size = 0;
-        while ((read_size = OnPduParse(total_buffer, total_length, base)) > 0) {
-            //remove read data.
-            memmove(total_buffer, total_buffer + read_size, total_length - read_size);
-            total_length -= read_size;
-            OnReceive(base);
-        }
-
-        printf("Received message!!: %s\n", buf);
-        usleep(1);
     }
 }
 

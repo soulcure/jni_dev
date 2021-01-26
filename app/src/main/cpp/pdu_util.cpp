@@ -31,33 +31,33 @@ int PduUtil::SetUserId(char *buf, int userId) {
  *
  */
 int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/ ) {
-    char *position = buffer;
-    int *startFlag = (int *) position;
     if (length <= 0) {
         return 0;
     }
-    if (ntohl(*startFlag) != PDUBase::start_flag) {
+
+    char *position = buffer;
+    int *startFlag = (int *) position;  //读取前面4字节
+
+    if (ntohl(*startFlag) != PDUBase::start_flag) {  //是否未包头标识
         LOGD("start_flag != PDUBase::start_flag");
         return -1;
     }
-
     position += sizeof(int);
+
     int *terminalToken = (int *) position;
     base.terminal_token = ntohl(*terminalToken);
-
     position += sizeof(int);
+
     int *commandId = (int *) position;
     base.command_id = ntohl(*commandId);
-
     position += sizeof(int);
+
     int *seqId = (int *) position;
     base.seq_id = ntohl(*seqId);
-
     position += sizeof(int);
+
     int *len = (int *) position;
     base.length = ntohl(*len);
-
-
     position += sizeof(int);
 
     //not a full package.
@@ -68,30 +68,32 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     memcpy(pBody.get(), position, base.length);
     base.body = pBody;
 
-
     return position - buffer + base.length;
 }
 
 
 /****************************************************
- *  const static int startflag = 88888888 ;
+ *  const static int start_flag;
     int command_id ;
     int seq_id;
     int length ;
     std::shared_ptr<char> body ;
-
  */
-int PduUtil::OnPduPack(PDUBase &base, char *&outBuf /*this is return value*/) {
+int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/) {
     int totalLen = 0;
 
     int startFlag = htonl(PDUBase::start_flag);
     totalLen += sizeof(int);
+
     int terminalToken = htonl(base.terminal_token);
     totalLen += sizeof(int);
+
     int commandId = htonl(base.command_id);
     totalLen += sizeof(int);
+
     int seq = htonl(base.seq_id);
     totalLen += sizeof(int);
+
     int protoLen = htonl(base.length);
     totalLen += sizeof(int);
 
@@ -103,16 +105,21 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuf /*this is return value*/) {
     int offset = 0;
     memcpy(buf + offset, (char *) (&startFlag), sizeof(int));
     offset += sizeof(int);
+
     memcpy(buf + offset, (char *) (&terminalToken), sizeof(int));
     offset += sizeof(int);
+
     memcpy(buf + offset, (char *) (&commandId), sizeof(int));
     offset += sizeof(int);
+
     memcpy(buf + offset, (char *) (&seq), sizeof(int));
     offset += sizeof(int);
+
     memcpy(buf + offset, (char *) (&protoLen), sizeof(int));
     offset += sizeof(int);
+
     memcpy(buf + offset, base.body.get(), base.length);
-    outBuf = buf;
+    outBuffer = buf;
 
     LOGT(buf);
 

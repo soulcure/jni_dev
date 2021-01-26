@@ -1,17 +1,15 @@
-#ifndef H_LOG_UTIL_H
-#define H_LOG_UTIL_H
+#ifndef LOG_UTIL_H
+#define LOG_UTIL_H
 
 #include "pdu_base.h"
 
 enum LogLevel {
-
     Level_Debug,
     Level_Trace,
     Level_Info,
     Level_Warning,
     Level_Error,
     Level_Fatal,
-
 };
 
 
@@ -35,4 +33,4 @@ void LogSetLevel(LogLevel);
 void printPdu(PDUBase &_pdu);
 
 
-#endif // H_LOG_UTIL_H
+#endif // LOG_UTIL_H

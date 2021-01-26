@@ -1,5 +1,5 @@
-#ifndef H_TCP_CLIENT_H
-#define H_TCP_CLIENT_H
+#ifndef TCP_CLIENT_H
+#define TCP_CLIENT_H
 
 #include "pdu_base.h"
 #include "pdu_util.h"
@@ -43,5 +43,5 @@ protected:
 
 };
 
-#endif // H_TCP_CLIENT_H
+#endif // TCP_CLIENT_H
 
