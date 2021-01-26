@@ -93,6 +93,8 @@ void TcpClient::Connect() {
 
     std::thread run(&TcpClient::SendThread, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
+
+    ReceiveThread();
 }
 
 
