@@ -61,6 +61,41 @@ void TcpClient::Send(PDUBase &base) {
 }
 
 
+void TcpClient::Connect() {
+    struct sockaddr_in sad{};
+
+    LOGT("TCPClient connect\n");
+    memset(&sad, 0, sizeof(sockaddr));
+    sad.sin_family = AF_INET;  //使用IPV4地址
+    sad.sin_port = htons(m_port); //端口 host to network short
+    inet_aton(m_ip, &sad.sin_addr);
+
+    socketFd = socket(PF_INET, SOCK_STREAM, 0);
+
+#ifdef DEBUG
+    printf("Connecting to [%s]:[%d]...\n\n", m_ip, m_port);
+#endif
+    struct timeval time{};
+    socklen_t len = 0;
+    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
+
+    int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
+
+    LOGT("TCPClient Running %d\n", result);
+
+    if (result != 0) {
+        Close();
+        OnDisconnect();
+        return;
+    }
+
+    OnConnect(); //call callback while connected.
+
+    std::thread run(&TcpClient::SendThread, this);// c11 create a thread to run reading.
+    run.detach();  //子线程和main thread 完全分离
+}
+
+
 void TcpClient::ReceiveThread() {
     int total_length = 0;
     char *total_buffer = new char[BUFF_MAX];
@@ -152,40 +187,6 @@ void TcpClient::OnDisconnect() {
     if (m_connect_state != nullptr) {
         m_connect_state(-1, "tcp client connect fail");
     }
-}
-
-void TcpClient::Connect() {
-    struct sockaddr_in sad{};
-
-    LOGT("TCPClient connect\n");
-    memset(&sad, 0, sizeof(sockaddr));
-    sad.sin_family = AF_INET;  //使用IPV4地址
-    sad.sin_port = htons(m_port); //端口 host to network short
-    inet_aton(m_ip, &sad.sin_addr);
-
-    socketFd = socket(PF_INET, SOCK_STREAM, 0);
-
-#ifdef DEBUG
-    printf("Connecting to [%s]:[%d]...\n\n", m_ip, m_port);
-#endif
-    struct timeval time{};
-    socklen_t len = 0;
-    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
-
-    int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
-
-    LOGT("TCPClient Running %d\n", result);
-
-    if (result != 0) {
-        Close();
-        OnDisconnect();
-        return;
-    }
-
-    OnConnect(); //call callback while connected.
-
-    std::thread run(&TcpClient::ReceiveThread, this);// c11 create a thread to run reading.
-    run.detach();  //子线程和main thread 完全分离
 }
 
 void TcpClient::OnReceiver(PDUBase &base) {
