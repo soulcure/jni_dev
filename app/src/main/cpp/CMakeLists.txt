@@ -26,7 +26,13 @@ add_library( # Sets the name of the library.
 
         net/pdu_util.cpp
         net/pdu_base.cpp
-        net/tcp/client/tcp_client.cpp)
+        net/tcp/client/tcp_client.cpp
+
+        net/tcp/server/tcp_server.cpp
+        net/tcp/server/request.cpp
+        net/tcp/server/net_base.cpp
+        net/tcp/server/poll.cpp
+        net/tcp/server/xstring.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
