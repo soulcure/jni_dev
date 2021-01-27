@@ -55,7 +55,8 @@ void TcpClient::SendProto(const std::vector<char> &msg, int commandId, int seqId
 
 
 void TcpClient::Send(PDUBase &base) {
-    std::lock_guard<std::mutex> guard(mtx);
+    //std::lock_guard<std::mutex> guard(mtx);
+    std::unique_lock<std::mutex> lock(mtx);
     m_queue.push(base);
     interrupt.notify_one();
 }
@@ -146,10 +147,13 @@ void TcpClient::ReceiveThread() {
 
 void TcpClient::SendThread() {
     while (m_exit) {
-        while (socketFd >= 0 && !m_queue.empty()) {
-            std::lock_guard<std::mutex> guard(mtx);
+        while (socketFd >= 0) {
+            std::unique_lock<std::mutex> lock(mtx);
+            interrupt.wait(lock, [this] { return !m_queue.empty(); });
+
             PDUBase base = m_queue.front();
             m_queue.pop();
+
             char *buf = nullptr;
             int len = OnPduPack(base, buf);
             if (len <= 0) {
