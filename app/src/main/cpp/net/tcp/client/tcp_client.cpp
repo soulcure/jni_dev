@@ -63,24 +63,34 @@ void TcpClient::Send(PDUBase &base) {
 
 
 void TcpClient::Connect() {
-    struct sockaddr_in sad{};
-
     LOGD("TCPClient Connecting to [%s]:[%d]", m_ip.c_str(), m_port);
 
-    memset(&sad, 0, sizeof(sockaddr));
-    sad.sin_family = AF_INET;  //使用IPV4地址
-    sad.sin_port = htons(m_port); //端口 host to network short
-    inet_aton(m_ip.c_str(), &sad.sin_addr);
+    socketFd = socket(AF_INET, SOCK_STREAM, 0); //ipv4,TCP数据连接
+    if (socketFd < 0) {
+        LOGE("create socketFd error...");
+        OnDisconnect();
+        return;
+    }
 
-    socketFd = socket(PF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server_address{};
+    memset(&server_address, 0, sizeof(server_address));
+    server_address.sin_family = AF_INET;  //使用IPV4地址
+    server_address.sin_port = htons(m_port); //端口 host to network short
+    inet_aton(m_ip.c_str(), &server_address.sin_addr);
+
+    const char *ip = m_ip.c_str();
+    if (inet_pton(AF_INET, ip, &server_address.sin_addr) <= 0) { //设置ip地址
+        LOGE("address ip error for [%s]", ip);
+        OnDisconnect();
+        return;
+    }
+
     struct timeval time{};
     socklen_t len = 0;
-    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
+    getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);  //设置socket option
 
-    int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
-
+    int result = connect(socketFd, (struct sockaddr *) &server_address, sizeof(server_address));
     LOGD("TCPClient Connect result=%d", result);
-
     if (result != 0) {
         Close();
         OnDisconnect();
