@@ -15,7 +15,7 @@ public:
 
     typedef void (*OnReceive)(PDUBase &);
 
-    TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive);
+    TcpClient(const std::string &ip, int port, OnConnectState state, OnReceive receive);
 
     ~TcpClient();
 
@@ -30,8 +30,7 @@ public:
 
 private:
     int m_port;
-    const char *m_ip;
-    const int ResendNumLimit = 3;   //发送失败重发次数限制
+    std::string m_ip;
     int socketFd;
     bool m_exit;
     std::queue<PDUBase> m_queue;   // 全局消息队列

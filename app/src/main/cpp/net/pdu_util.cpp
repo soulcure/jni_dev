@@ -121,8 +121,6 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     memcpy(buf + offset, base.body.get(), base.length);
     outBuffer = buf;
 
-    LOGT(buf);
-
     return totalLen;
 
 }

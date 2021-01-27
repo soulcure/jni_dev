@@ -17,7 +17,7 @@
 #define BUFF_LENGTH 1024*5
 
 
-TcpClient::TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive)
+TcpClient::TcpClient(const std::string &ip, int port, OnConnectState state, OnReceive receive)
         : m_ip(ip), m_port(port), m_connect_state(state), m_receive(receive) {
 
 }
@@ -65,24 +65,21 @@ void TcpClient::Send(PDUBase &base) {
 void TcpClient::Connect() {
     struct sockaddr_in sad{};
 
-    LOGT("TCPClient connect\n");
+    LOGD("TCPClient Connecting to [%s]:[%d]", m_ip.c_str(), m_port);
+
     memset(&sad, 0, sizeof(sockaddr));
     sad.sin_family = AF_INET;  //使用IPV4地址
     sad.sin_port = htons(m_port); //端口 host to network short
-    inet_aton(m_ip, &sad.sin_addr);
+    inet_aton(m_ip.c_str(), &sad.sin_addr);
 
     socketFd = socket(PF_INET, SOCK_STREAM, 0);
-
-#ifdef DEBUG
-    printf("Connecting to [%s]:[%d]...\n\n", m_ip, m_port);
-#endif
     struct timeval time{};
     socklen_t len = 0;
     getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);
 
     int result = connect(socketFd, (struct sockaddr *) &sad, sizeof(sad));
 
-    LOGT("TCPClient Running %d\n", result);
+    LOGD("TCPClient Connect result=%d", result);
 
     if (result != 0) {
         Close();
@@ -170,11 +167,11 @@ void TcpClient::SendThread() {
                 }
                 totalLen += write_len;
             }
-            LOGT("TCP Send Data Out.\n");
+            LOGD("TCP Send Data Out.\n");
             free(buf);
         }
 
-        LOGT("TCP Send Thread Wait.\n");
+        LOGD("TCP Send Thread Wait.\n");
         std::unique_lock<std::mutex> lck(mtx);
         interrupt.wait(lck);
     }
