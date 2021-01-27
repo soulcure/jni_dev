@@ -6,9 +6,9 @@
 extern "C"
 {
 
-JNIEXPORT jstring JNICALL Java_com_coocaa_socket_UtilJni_stringFromJNI(JNIEnv *env, jobject);
+JNIEXPORT jstring JNICALL Java_com_coocaa_socket_UtilJni_stringFromJNI(JNIEnv *env, jclass clazz);
 
-JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jobject);
+JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz);
 
 
 }
