@@ -185,13 +185,15 @@ void TcpClient::SendThread() {
 
 void TcpClient::OnConnect() {
     if (m_connect_state != nullptr) {
-        m_connect_state(0);
+        std::string message = "tcp connect success";
+        m_connect_state(0, message);
     }
 }
 
 void TcpClient::OnDisconnect() {
     if (m_connect_state != nullptr) {
-        m_connect_state(-1);
+        std::string message = "tcp connect fail";
+        m_connect_state(-1, message);
     }
 }
 

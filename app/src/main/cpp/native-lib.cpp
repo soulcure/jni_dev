@@ -12,8 +12,8 @@ Java_com_coocaa_socket_MainActivity_stringFromJNI(
 
     std::string ip = "172.20.144.108";
     int port = 34000;
-    auto callback = [](int code) {
-        LOGD("tcp client connect result code:%d", code);
+    auto callback = [](int code, std::string &message) {
+        LOGD("tcp client connect result code:%d message:%s", code, message.c_str());
     };
     auto receive = [](PDUBase &pdu) {
         LOGD("tcp client receive pdu");

@@ -11,7 +11,7 @@
 
 class TcpClient : public PduUtil {
 public:
-    typedef void(*OnConnectState)(int);
+    typedef void(*OnConnectState)(const int, std::string &);
 
     typedef void (*OnReceive)(PDUBase &);
 
