@@ -6,7 +6,6 @@
 #define SOCKET_SDK_MANAGER_H
 
 #include "singleton.h"
-#include "sdk_manager.h"
 #include "net/tcp/client/tcp_client.h"
 
 
