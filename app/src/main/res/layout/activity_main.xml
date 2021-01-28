@@ -17,6 +17,13 @@
             android:layout_height="wrap_content"
             android:text="Hello World!" />
 
+        <EditText
+            android:id="@+id/et_ip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="172.20.144.95" />
+
         <Button
             android:id="@+id/btn_test"
             android:layout_width="wrap_content"
