@@ -15,7 +15,7 @@ public:
 
     typedef void (*OnReceive)(PDUBase &);
 
-    TcpClient(const std::string &ip, int port, OnConnectState state, OnReceive receive);
+    TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive);
 
     ~TcpClient();
 
@@ -30,7 +30,7 @@ public:
 
 private:
     int m_port;
-    std::string m_ip;
+    const char *m_ip;
     int socketFd;
     bool m_exit;
     std::queue<PDUBase> m_queue;   // 全局消息队列

@@ -17,7 +17,7 @@
 #define BUFF_LENGTH 1024*5
 
 
-TcpClient::TcpClient(const std::string &ip, int port, OnConnectState state, OnReceive receive)
+TcpClient::TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive)
         : m_ip(ip), m_port(port), m_connect_state(state), m_receive(receive) {
 
 }
@@ -63,7 +63,7 @@ void TcpClient::Send(PDUBase &base) {
 
 
 void TcpClient::Connect() {
-    LOGD("TCPClient Connecting to [%s]:[%d]", m_ip.c_str(), m_port);
+    LOGD("TCPClient Connecting to [%s]:[%d]", m_ip, m_port);
 
     socketFd = socket(AF_INET, SOCK_STREAM, 0); //ipv4,TCP数据连接
     if (socketFd < 0) {
@@ -76,11 +76,10 @@ void TcpClient::Connect() {
     memset(&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;  //使用IPV4地址
     server_address.sin_port = htons(m_port); //端口 host to network short
-    inet_aton(m_ip.c_str(), &server_address.sin_addr);
+    inet_aton(m_ip, &server_address.sin_addr);
 
-    const char *ip = m_ip.c_str();
-    if (inet_pton(AF_INET, ip, &server_address.sin_addr) <= 0) { //设置ip地址
-        LOGE("address ip error for [%s]", ip);
+    if (inet_pton(AF_INET, m_ip, &server_address.sin_addr) <= 0) { //设置ip地址
+        LOGE("address ip error for [%s]", m_ip);
         OnDisconnect();
         return;
     }
