@@ -4,7 +4,7 @@ public class UtilJni {
     //***************以下为java调用 C++接口******************//
     public static native String stringFromJNI();
 
-    public static native void tcpFromJNI();
+    public static native void tcpFromJNI(String ip, int port);
 
 
     //*************以下为 C++调用java接口******************//

@@ -24,7 +24,9 @@ public class MainActivity extends AppCompatActivity {
 
         Button btn_test = findViewById(R.id.btn_test);
         btn_test.setOnClickListener(v -> {
-            UtilJni.tcpFromJNI();
+            String ip = "172.20.144.115";
+            int port = 34000;
+            UtilJni.tcpFromJNI(ip, port);
         });
     }
 

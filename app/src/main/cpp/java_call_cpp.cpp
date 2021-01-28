@@ -12,9 +12,10 @@ JNIEXPORT jstring JNICALL Java_com_coocaa_socket_UtilJni_stringFromJNI(JNIEnv *e
     return env->NewStringUTF(hello.c_str());
 }
 
-JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz) {
-    std::string ip = "172.20.144.115";
-    int port = 34000;
+JNIEXPORT void JNICALL
+Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip, jint port) {
+    const char *p_ip = env->GetStringUTFChars(ip, 0);
+
     auto callback = [](int code, std::string &message) {
         LOGD("tcp client connect result code:%d message:%s", code, message.c_str());
     };
@@ -22,9 +23,12 @@ JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jc
         LOGD("tcp client receive pdu");
     };
 
-    LOGD("TcpClient to [%s]:[%d]...", ip.c_str(), port);
-    auto *tcpClient = new TcpClient(ip, port, callback, receive);
+    LOGD("TcpClient to [%s]:[%d]...", p_ip, port);
+    auto *tcpClient = new TcpClient(p_ip, port, callback, receive);
     tcpClient->Open();
+
+    // use your string
+    env->ReleaseStringUTFChars(ip, p_ip);
 }
 
 
