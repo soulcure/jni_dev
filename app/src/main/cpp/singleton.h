@@ -10,21 +10,17 @@
 template<class T>
 class singleton {
 public:
-    singleton() {
-
-    }
-
-    ~singleton() {
-
-    }
-
     static std::shared_ptr<T> Instance() {
         if (!m_pInstance) {
             m_pInstance = std::make_shared<T>();
         }
-        assert(m_pInstance != nullptr);
         return m_pInstance;
     }
+
+protected:
+    singleton() {}
+
+    ~singleton() {}
 
 private:
     singleton(singleton const &);
