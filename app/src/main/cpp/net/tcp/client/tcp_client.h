@@ -29,7 +29,7 @@ public:
 
     void Send(PDUBase &base);
 
-    void SendProto(int pdu_type, const char *message);
+    void SendProto(char pdu_type, const char *message);
 
 private:
     int m_port;

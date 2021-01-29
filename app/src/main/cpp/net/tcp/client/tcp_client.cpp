@@ -55,7 +55,7 @@ void TcpClient::Close() {
 }
 
 
-void TcpClient::SendProto(int pdu_type, const char *message) {
+void TcpClient::SendProto(char pdu_type, const char *message) {
     PDUBase pdu_base;
 
     int size = sizeof(message);
@@ -67,6 +67,8 @@ void TcpClient::SendProto(int pdu_type, const char *message) {
     pdu_base.length = size;
     pdu_base.body = body;
 
+    LOGD("TCPClient SendProto pdu_base pdu_type:[%d] length:[%d]", pdu_type, size);
+
     Send(pdu_base);
 }
 
@@ -76,6 +78,7 @@ void TcpClient::Send(PDUBase &base) {
     std::unique_lock<std::mutex> lock(mtx);
     m_queue.push(base);
     interrupt.notify_one();
+    LOGD("TCPClient push PDUBase to send queue");
 }
 
 
@@ -169,39 +172,41 @@ void TcpClient::ReceiveThread() {
 
 
 void TcpClient::SendThread() {
-    while (m_exit) {
-        while (socketFd >= 0) {
-            std::unique_lock<std::mutex> lock(mtx);
-            interrupt.wait(lock, [this] { return !m_queue.empty(); });
+    LOGD("TCPClient SendThread exit:[%d]", m_exit);
 
-            PDUBase base = m_queue.front();
-            m_queue.pop();
+    while (!m_exit && socketFd >= 0) {
+        LOGD("TCPClient SendThread start socketFd:[%d]", socketFd);
 
-            char *buf = nullptr;
-            int len = OnPduPack(base, buf);
-            if (len <= 0) {
+        std::unique_lock<std::mutex> lock(mtx);
+
+        LOGD("TCPClient SendThread wait");
+        interrupt.wait(lock, [this] { return !m_queue.empty(); });
+
+        LOGD("TCPClient SendThread m_queue pop");
+        PDUBase base = m_queue.front();
+        m_queue.pop();
+
+        char *buf = nullptr;
+        int len = OnPduPack(base, buf);
+        if (len <= 0) {
+            OnDisconnect();
+            return;
+        }
+        int totalLen = 0;
+        //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
+        while (totalLen < len) {
+            int write_len = write(socketFd, buf + totalLen, len - totalLen);
+            LOGD("TCPClient SendThread write_len:[%d]", write_len);
+            if (write_len <= 0) {
                 OnDisconnect();
                 return;
             }
-            int totalLen = 0;
-            //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
-            while (totalLen < len) {
-                int write_len = write(socketFd, buf + totalLen, len - totalLen);
-                if (write_len <= 0) {
-                    OnDisconnect();
-                    return;
-                }
-                totalLen += write_len;
-            }
-            LOGD("TCP Send Data Out.\n");
-            free(buf);
+            totalLen += write_len;
         }
-
-        LOGD("TCP Send Thread Wait.\n");
-        std::unique_lock<std::mutex> lck(mtx);
-        interrupt.wait(lck);
+        LOGD("TCP Send Data Out");
+        free(buf);
     }
-
+    LOGD("TCPClient SendThread exit...");
 
 }
 
