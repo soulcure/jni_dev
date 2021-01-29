@@ -32,7 +32,7 @@ void TcpClient::Open(const char *ip, int port) {
     m_exit = false;
     m_ip = ip;
     m_port = port;
-    LOGD("TcpClient Open [%s]:[%d]...", ip, port);
+    LOGD("TcpClient Open [%s]:[%d]", ip, port);
     std::thread run(&TcpClient::Connect, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
 }
@@ -135,8 +135,11 @@ void TcpClient::ReceiveThread() {
     while (true) {
         int len = 0;
         memset(buf, 0, BUFF_LENGTH);
+        LOGD("TCPClient ReceiveThread start...");
+
         len = read(socketFd, buf, BUFF_LENGTH);
 
+        LOGD("TCPClient Receive size=[%d]", len);
         if (len > 0) {  //读取到数据
             if (total_length + len > BUFF_MAX) {
                 total_length = 0;
@@ -153,14 +156,13 @@ void TcpClient::ReceiveThread() {
                 OnReceiver(base);
             }
 
-            printf("Received message!!: %s\n", buf);
             usleep(1);
         } else {
             if (len < 0) {   //len<0 网络错误断开
                 char *msg = strerror(errno);
-                printf("NetClient Msg:%s\n", msg);
+                LOGE("TCPClient Receive Msg:%s", msg);
             } else {
-                LOGD("NetClient disconnect.\n "); //len=0 对方主动断开
+                LOGD("TCPClient Receive disconnect"); //len=0 对方主动断开
             }
             Close();
             delete[]total_buffer;
@@ -229,6 +231,7 @@ void TcpClient::OnDisconnect() {
 }
 
 void TcpClient::OnReceiver(PDUBase &base) {
+    LOGD("TCPClient Receive message=%s", base.body.get());
     if (m_receive != nullptr) {
         m_receive(base);
     }

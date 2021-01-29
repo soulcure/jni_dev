@@ -35,4 +35,10 @@ void sdk_manager::send_message(const char *message) {
 }
 
 
+void sdk_manager::send_bytes(const char *message) {
+    LOGD("send_bytes:[%s]", message);
+    tcp_client->SendProto(PDUBase::LOCAL_BYTES, message);
+}
+
+
 

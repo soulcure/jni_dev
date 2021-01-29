@@ -39,7 +39,7 @@ Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray b
     char *p_message = (char *) temp;
     p_message[chars_len] = 0;
 
-    sdk_manager::Get().send_message(p_message);
+    sdk_manager::Get().send_bytes(p_message);
 
     env->ReleaseByteArrayElements(byteArray, temp, JNI_FALSE);
 
