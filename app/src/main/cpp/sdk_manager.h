@@ -7,6 +7,7 @@
 
 #include "net/tcp/client/tcp_client.h"
 #include "log_util.h"
+#include "net/pdu_base.h"
 
 class sdk_manager {
 public:

@@ -44,9 +44,9 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     }
     position += sizeof(int);
 
-    int *pdu_type = (int *) position;
-    base.offset = ntohl(*pdu_type);
-    position += sizeof(int);
+    char *pdu_type = (char *) position;
+    base.offset = *pdu_type;
+    position += sizeof(char);
 
     int *offset = (int *) position;
     base.offset = ntohl(*offset);
@@ -97,8 +97,8 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     int startFlag = htonl(PDUBase::start_flag);
     totalLen += sizeof(int);
 
-    int pdu_type = htonl(base.pdu_type);
-    totalLen += sizeof(int);
+    char pdu_type = base.pdu_type;
+    totalLen += sizeof(char);
 
     int protoOffset = htonl(base.offset);
     totalLen += sizeof(int);
@@ -127,8 +127,8 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     memcpy(buf + offset, (char *) (&startFlag), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buf + offset, (char *) (&pdu_type), sizeof(int));
-    offset += sizeof(int);
+    memcpy(buf + offset, (char *) (&pdu_type), sizeof(char));
+    offset += sizeof(char);
 
     memcpy(buf + offset, (char *) (&offset), sizeof(int));
     offset += sizeof(int);

@@ -1,13 +1,14 @@
 package com.coocaa.socket;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText et_ip;
 
@@ -27,12 +28,25 @@ public class MainActivity extends AppCompatActivity {
 
         tv.setText(UtilJni.stringFromJNI());
 
-        Button btn_test = findViewById(R.id.btn_test);
-        btn_test.setOnClickListener(v -> {
-            String ip = et_ip.getText().toString();
-            int port = 34000;
-            UtilJni.tcpFromJNI(ip, port);
-        });
+        findViewById(R.id.btn_connect).setOnClickListener(this);
+        findViewById(R.id.btn_send).setOnClickListener(this);
     }
 
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id) {
+            case R.id.btn_connect:
+                String ip = et_ip.getText().toString();
+                int port = 34000;
+                UtilJni.tcpFromJNI(ip, port);
+                break;
+            case R.id.btn_send:
+                String message = "hello world";
+
+                UtilJni.sendMessage(message);
+                break;
+        }
+    }
 }
