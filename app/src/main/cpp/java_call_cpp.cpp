@@ -25,7 +25,6 @@ JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring message) {
     const char *p_message = env->GetStringUTFChars(message, JNI_FALSE);
 
-    LOGD("UtilJni_sendMessage:%s", p_message);
     sdk_manager::Get().send_message(p_message);
 
     env->ReleaseStringUTFChars(message, p_message);
@@ -33,14 +32,17 @@ Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring mes
 
 
 JNIEXPORT void JNICALL
-Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray bytes) {
-    jbyte *temp = env->GetByteArrayElements(bytes, JNI_FALSE);
-    const char *p_message = (char *) temp;
+Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray byteArray) {
+    jbyte *temp = env->GetByteArrayElements(byteArray, JNI_FALSE);
+    int chars_len = env->GetArrayLength(byteArray);
 
-    LOGD("UtilJni_sendBytes:%s", p_message);
+    char *p_message = (char *) temp;
+    p_message[chars_len] = 0;
+
     sdk_manager::Get().send_message(p_message);
 
-    env->ReleaseByteArrayElements(bytes, temp, JNI_FALSE);
+    env->ReleaseByteArrayElements(byteArray, temp, JNI_FALSE);
+
 }
 
 }

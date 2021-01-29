@@ -24,12 +24,12 @@ sdk_manager::~sdk_manager() {
 
 
 void sdk_manager::create_tcp_client(const char *ip, int port) {
-    LOGD("TcpClient to [%s]:[%d]...", ip, port);
+    LOGD("TcpClient to [%s]:[%d]", ip, port);
     tcp_client->Open(ip, port);
 }
 
 void sdk_manager::send_message(const char *message) {
-    LOGD("send_message:[%s]...", message);
+    LOGD("send_message:[%s]", message);
     tcp_client->SendProto(PDUBase::LOCAL_STRING, message);
 
 }

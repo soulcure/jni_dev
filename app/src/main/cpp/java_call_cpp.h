@@ -27,7 +27,7 @@ JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring message);
 
 JNIEXPORT void JNICALL
-Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray message);
+Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray byteArray);
 
 
 }
