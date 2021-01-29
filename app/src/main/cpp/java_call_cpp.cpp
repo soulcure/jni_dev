@@ -25,6 +25,7 @@ JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_sendMessage(JNIEnv *env, jclass clazz, jstring message) {
     const char *p_message = env->GetStringUTFChars(message, 0);
 
+    LOGD("UtilJni_sendMessage:%s", p_message);
     sdk_manager::Get().send_message(p_message);
 
     env->ReleaseStringUTFChars(message, p_message);
