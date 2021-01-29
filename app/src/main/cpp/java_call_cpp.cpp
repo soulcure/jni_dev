@@ -26,7 +26,7 @@ Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip,
     LOGD("TcpClient to [%s]:[%d]...", p_ip, port);
     auto *tcpClient = new TcpClient(p_ip, port, callback, receive);
     tcpClient->Open();
-    sdk_manager::Instance()->set_tcp_client(tcpClient);
+    sdk_manager::Get().set_tcp_client(tcpClient);
     env->ReleaseStringUTFChars(ip, p_ip);
 }
 
