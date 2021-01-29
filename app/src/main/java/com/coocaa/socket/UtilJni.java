@@ -6,7 +6,9 @@ public class UtilJni {
 
     public static native void tcpFromJNI(String ip, int port);
 
-    public static native void sendMessage(String message);
+    public static native void sendString(String message);
+
+    public static native void sendBytes(byte[] bytes);
 
 
     //*************以下为 C++调用java接口******************//

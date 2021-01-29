@@ -33,11 +33,19 @@
 
 
         <Button
-            android:id="@+id/btn_send"
+            android:id="@+id/btn_string"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="send message" />
+            android:text="send String" />
+
+
+        <Button
+            android:id="@+id/btn_bytes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="send Bytes" />
 
     </LinearLayout>
 

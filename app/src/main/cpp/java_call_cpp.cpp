@@ -14,7 +14,7 @@ JNIEXPORT jstring JNICALL Java_com_coocaa_socket_UtilJni_stringFromJNI(JNIEnv *e
 
 JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip, jint port) {
-    const char *p_ip = env->GetStringUTFChars(ip, 0);
+    const char *p_ip = env->GetStringUTFChars(ip, JNI_FALSE);
 
     sdk_manager::Get().create_tcp_client(p_ip, port);
 
@@ -22,13 +22,25 @@ Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip,
 }
 
 JNIEXPORT void JNICALL
-Java_com_coocaa_socket_UtilJni_sendMessage(JNIEnv *env, jclass clazz, jstring message) {
-    const char *p_message = env->GetStringUTFChars(message, 0);
+Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring message) {
+    const char *p_message = env->GetStringUTFChars(message, JNI_FALSE);
 
     LOGD("UtilJni_sendMessage:%s", p_message);
     sdk_manager::Get().send_message(p_message);
 
     env->ReleaseStringUTFChars(message, p_message);
+}
+
+
+JNIEXPORT void JNICALL
+Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray bytes) {
+    jbyte *temp = env->GetByteArrayElements(bytes, JNI_FALSE);
+    const char *p_message = (char *) temp;
+
+    LOGD("UtilJni_sendBytes:%s", p_message);
+    sdk_manager::Get().send_message(p_message);
+
+    env->ReleaseByteArrayElements(bytes, temp, JNI_FALSE);
 }
 
 }
