@@ -4,11 +4,12 @@
 
 #include "pdu_base.h"
 
-PDUBase::PDUBase()
-{
-    terminal_token = 0;
-    this->length = 0;
-    this->seq_id = 0;
-    this->command_id = 0 ;
+PDUBase::PDUBase() {
+    offset = 0;
+    size = 0;
+    presentationTimeUs = 0;
+    flags = 0;
+    reserved = 0;
+    length = 0;
 }
 

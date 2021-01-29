@@ -23,5 +23,8 @@ JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip, jint port);
 
 
+JNIEXPORT void JNICALL
+Java_com_coocaa_socket_UtilJni_sendMessage(JNIEnv *env, jclass clazz, jstring message);
+
 }
 #endif //JAVA_TO_CPP_H

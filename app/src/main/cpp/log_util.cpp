@@ -33,9 +33,5 @@ void LogImp(LogLevel l, const char *file, int line, const char *msg, ...) {
 }
 
 
-void printPdu(PDUBase &pdu) {
-    printf("command_id is:%d,\nlength is:%d,\nseq_id is:%d,\nterminal_token is:%d\n",
-           pdu.command_id, pdu.length, pdu.seq_id, pdu.terminal_token);
-}
 
 

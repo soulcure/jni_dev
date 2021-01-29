@@ -39,9 +39,6 @@ enum LogLevel {
 
 void LogImp(LogLevel l, const char *file, int line, const char *msg, ...);
 
-void LogSetLevel(LogLevel);
-
-void printPdu(PDUBase &_pdu);
 #endif
 
 

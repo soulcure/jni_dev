@@ -28,5 +28,10 @@ void sdk_manager::create_tcp_client(const char *ip, int port) {
     tcp_client->Open(ip, port);
 }
 
+void sdk_manager::send_message(const char *message) {
+    LOGD("send_message:[%s]...", message);
+
+}
+
 
 

@@ -55,13 +55,18 @@ void TcpClient::Close() {
 }
 
 
-void TcpClient::SendProto(const std::vector<char> &msg, int commandId, int seqId) {
+void TcpClient::SendProto(int pdu_type, const char *message) {
     PDUBase pdu_base;
-    std::shared_ptr<char> body(new char[msg.size()]);
+
+    int size = sizeof(message);
+
+    std::shared_ptr<char> body(new char[size]);
+    memcpy(body.get(), message, size);
+
+    pdu_base.pdu_type = pdu_type;
+    pdu_base.length = size;
     pdu_base.body = body;
-    pdu_base.length = msg.size();
-    pdu_base.command_id = commandId;
-    pdu_base.seq_id = seqId;
+
     Send(pdu_base);
 }
 

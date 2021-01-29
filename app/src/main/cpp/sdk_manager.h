@@ -14,6 +14,8 @@ public:
 
     void create_tcp_client(const char *ip, int port);
 
+    void send_message(const char *message);
+
     static sdk_manager &Get() {
         static sdk_manager instance;
         return instance;

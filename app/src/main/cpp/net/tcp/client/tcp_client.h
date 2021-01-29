@@ -21,8 +21,6 @@ public:
 
     void Open(const char *ip, int port);
 
-    void reOpen(const char *ip, int port);
-
     void setConnectStateListener(OnConnectState state);
 
     void setReceiveListener(OnReceive state);
@@ -31,8 +29,7 @@ public:
 
     void Send(PDUBase &base);
 
-    void SendProto(const std::vector<char> &msg, int commandId, int seqId);
-
+    void SendProto(int pdu_type, const char *message);
 
 private:
     int m_port;

@@ -44,16 +44,28 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     }
     position += sizeof(int);
 
-    int *terminalToken = (int *) position;
-    base.terminal_token = ntohl(*terminalToken);
+    int *pdu_type = (int *) position;
+    base.offset = ntohl(*pdu_type);
     position += sizeof(int);
 
-    int *commandId = (int *) position;
-    base.command_id = ntohl(*commandId);
+    int *offset = (int *) position;
+    base.offset = ntohl(*offset);
     position += sizeof(int);
 
-    int *seqId = (int *) position;
-    base.seq_id = ntohl(*seqId);
+    int *size = (int *) position;
+    base.size = ntohl(*size);
+    position += sizeof(int);
+
+    long *presentationTimeUs = (long *) position;
+    base.presentationTimeUs = ntohq(*presentationTimeUs);
+    position += sizeof(long);
+
+    int *flags = (int *) position;
+    base.flags = ntohl(*flags);
+    position += sizeof(int);
+
+    int *reserved = (int *) position;
+    base.reserved = ntohl(*reserved);
     position += sizeof(int);
 
     int *len = (int *) position;
@@ -64,7 +76,7 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     if (position - buffer + base.length > length)
         return 0;
 
-    std::shared_ptr<char> pBody(new char[base.length + 1]);
+    std::shared_ptr<char> pBody(new char[base.length]);
     memcpy(pBody.get(), position, base.length);
     base.body = pBody;
 
@@ -85,13 +97,22 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     int startFlag = htonl(PDUBase::start_flag);
     totalLen += sizeof(int);
 
-    int terminalToken = htonl(base.terminal_token);
+    int pdu_type = htonl(base.pdu_type);
     totalLen += sizeof(int);
 
-    int commandId = htonl(base.command_id);
+    int protoOffset = htonl(base.offset);
     totalLen += sizeof(int);
 
-    int seq = htonl(base.seq_id);
+    int size = htonl(base.size);
+    totalLen += sizeof(int);
+
+    long presentationTimeUs = htonq(base.presentationTimeUs);
+    totalLen += sizeof(long);
+
+    int flags = htonl(base.flags);
+    totalLen += sizeof(int);
+
+    int reserved = htonl(base.reserved);
     totalLen += sizeof(int);
 
     int protoLen = htonl(base.length);
@@ -106,13 +127,22 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     memcpy(buf + offset, (char *) (&startFlag), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buf + offset, (char *) (&terminalToken), sizeof(int));
+    memcpy(buf + offset, (char *) (&pdu_type), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buf + offset, (char *) (&commandId), sizeof(int));
+    memcpy(buf + offset, (char *) (&offset), sizeof(int));
     offset += sizeof(int);
 
-    memcpy(buf + offset, (char *) (&seq), sizeof(int));
+    memcpy(buf + offset, (char *) (&size), sizeof(int));
+    offset += sizeof(int);
+
+    memcpy(buf + offset, (char *) (&presentationTimeUs), sizeof(long));
+    offset += sizeof(long);
+
+    memcpy(buf + offset, (char *) (&flags), sizeof(int));
+    offset += sizeof(int);
+
+    memcpy(buf + offset, (char *) (&reserved), sizeof(int));
     offset += sizeof(int);
 
     memcpy(buf + offset, (char *) (&protoLen), sizeof(int));

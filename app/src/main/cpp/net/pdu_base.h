@@ -3,8 +3,7 @@
 
 #include <memory>   //shared_ptr
 
-class PDUBase
-{
+class PDUBase {
 public:
     PDUBase();
 
@@ -12,44 +11,23 @@ public:
      * index 0, [0,4)
      * start flag.
      */
-    const static int start_flag = 123456789 ;
+    const static int start_flag = 0X12345678;
 
-    /********************************************
-     * index 1, [4,8)
-     * terminal_id is user_id, if user loged in.
-     * if not login, given  him a random int.
-     *
-     */
-    int terminal_token ;
+    int pdu_type;
 
-    /*********************************************
-     * index 2, [8,12)
-     * this stand for command id.
-     * meet with protobuf.
-     */
-    int command_id ;
+    int offset;
 
-    /*********************************************
-     * index 3, [12,16)
-     * seq_id, app (also in other connect in model,
-     * such like php, used to route back to real source.)
-     * in app, seq_id is used to dispatch the event to different source.
-     */
-    int seq_id;
+    int size;
 
-    /*********************************************
-     * index 4, [16,20)
-     * protobuf length. in binary format.
-     */
-    int length ;
+    long presentationTimeUs;
 
-    /*********************************************
-     * the buffer holder for protobuf.
-     * this use shared_ptr to manage memory.
-     */
-    std::shared_ptr<char> body ;
+    int flags;
 
+    int reserved;
 
+    int length;
+
+    std::shared_ptr<char> body;
 };
 
 #endif // PDU_BASE_H
