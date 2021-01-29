@@ -59,7 +59,7 @@ void TcpClient::SendProto(char pdu_type, const char *message) {
     PDUBase pdu_base;
 
     int size = strlen(message);
-    LOGD("SendProto message size:%d", size);
+    LOGD("PDUBase send body length:[%d]", size);
 
     std::shared_ptr<char> body(new char[size]);
     memcpy(body.get(), message, size);
@@ -231,7 +231,8 @@ void TcpClient::OnDisconnect() {
 }
 
 void TcpClient::OnReceiver(PDUBase &base) {
-    LOGD("TCPClient Receive message=%s", base.body.get());
+    char *body = base.body.get();
+    LOGD("TCPClient Receive message=%s", body);
     if (m_receive != nullptr) {
         m_receive(base);
     }

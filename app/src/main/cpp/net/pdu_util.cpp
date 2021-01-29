@@ -39,7 +39,7 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     int *startFlag = (int *) position;  //读取前面4字节
 
     if (ntohl(*startFlag) != PDUBase::start_flag) {  //是否未包头标识
-        LOGD("start_flag != PDUBase::start_flag");
+        LOGE("start_flag != PDUBase::start_flag");
         return -1;
     }
     position += sizeof(int);
@@ -72,6 +72,7 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     base.length = ntohl(*len);
     position += sizeof(int);
 
+    LOGD("PDUBase receive body length:[%d]", base.length);
     //not a full package.
     if (position - buffer + base.length > length)
         return 0;
