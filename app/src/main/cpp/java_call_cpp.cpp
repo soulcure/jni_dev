@@ -16,17 +16,8 @@ JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip, jint port) {
     const char *p_ip = env->GetStringUTFChars(ip, 0);
 
-    auto callback = [](int code, std::string &message) {
-        LOGD("tcp client connect result code:%d message:%s", code, message.c_str());
-    };
-    auto receive = [](PDUBase &pdu) {
-        LOGD("tcp client receive pdu");
-    };
+    sdk_manager::Get().create_tcp_client(p_ip, port);
 
-    LOGD("TcpClient to [%s]:[%d]...", p_ip, port);
-    auto *tcpClient = new TcpClient(p_ip, port, callback, receive);
-    tcpClient->Open();
-    sdk_manager::Get().set_tcp_client(tcpClient);
     env->ReleaseStringUTFChars(ip, p_ip);
 }
 

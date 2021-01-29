@@ -15,11 +15,17 @@ public:
 
     typedef void (*OnReceive)(PDUBase &);
 
-    TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive);
+    TcpClient(OnConnectState state, OnReceive receive);
 
     ~TcpClient();
 
-    void Open();
+    void Open(const char *ip, int port);
+
+    void reOpen(const char *ip, int port);
+
+    void setConnectStateListener(OnConnectState state);
+
+    void setReceiveListener(OnReceive state);
 
     void Close();
 

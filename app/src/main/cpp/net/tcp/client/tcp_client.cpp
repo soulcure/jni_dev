@@ -17,8 +17,8 @@
 #define BUFF_LENGTH 1024*5
 
 
-TcpClient::TcpClient(const char *ip, int port, OnConnectState state, OnReceive receive)
-        : m_ip(ip), m_port(port), m_connect_state(state), m_receive(receive) {
+TcpClient::TcpClient(OnConnectState state, OnReceive receive)
+        : m_connect_state(state), m_receive(receive) {
 
 }
 
@@ -28,11 +28,23 @@ TcpClient::~TcpClient() {
     }
 }
 
-void TcpClient::Open() {
+void TcpClient::Open(const char *ip, int port) {
     m_exit = false;
+    m_ip = ip;
+    m_port = port;
+    LOGD("TcpClient Open [%s]:[%d]...", ip, port);
     std::thread run(&TcpClient::Connect, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
 }
+
+void TcpClient::setConnectStateListener(OnConnectState state) {
+    m_connect_state = state;
+}
+
+void TcpClient::setReceiveListener(OnReceive state) {
+    m_receive = state;
+}
+
 
 void TcpClient::Close() {
     m_exit = true;
