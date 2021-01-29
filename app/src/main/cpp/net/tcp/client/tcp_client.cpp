@@ -231,8 +231,12 @@ void TcpClient::OnDisconnect() {
 }
 
 void TcpClient::OnReceiver(PDUBase &base) {
-    char *body = base.body.get();
-    LOGD("TCPClient Receive message=%s", body);
+    char *buffer = new char[base.length + 1];
+    memcpy(buffer, base.body.get(), base.length);
+    buffer[base.length] = 0;
+    LOGD("TCPClient Receive message=%s", buffer);
+    delete[] buffer;
+
     if (m_receive != nullptr) {
         m_receive(base);
     }
