@@ -180,15 +180,17 @@ void TcpClient::SendThread() {
 
         std::unique_lock<std::mutex> lock(mtx);
 
-        LOGD("TCPClient SendThread wait");
+        LOGD("TCPClient SendThread wait...");
         interrupt.wait(lock, [this] { return !m_queue.empty(); });
 
-        LOGD("TCPClient SendThread m_queue pop");
+        LOGD("TCPClient SendThread wake up and m_queue pop...");
         PDUBase base = m_queue.front();
         m_queue.pop();
 
         char *buf = nullptr;
         int len = OnPduPack(base, buf);
+
+        LOGD("TCPClient SendThread send pdu buffer length:[%d]", len);
         if (len <= 0) {
             OnDisconnect();
             return;
