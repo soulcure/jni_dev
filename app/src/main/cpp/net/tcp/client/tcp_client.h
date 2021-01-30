@@ -21,9 +21,9 @@ public:
 
     void Open(const char *ip, int port);
 
-    void setConnectStateListener(OnConnectState state);
+    void SetConnectStateListener(OnConnectState state);
 
-    void setReceiveListener(OnReceive state);
+    void SetReceiveListener(OnReceive state);
 
     void Close();
 
@@ -43,17 +43,17 @@ private:
     OnConnectState m_connect_state;
     OnReceive m_receive;
 
-    void OnConnect();
+    void onConnect();
 
-    void OnDisconnect();
+    void onDisconnect();
 
-    void OnReceiver(PDUBase &base);
+    void onReceiver(PDUBase &base);
 
-    void Connect();
+    void connectTcp();
 
-    void ReceiveThread();
+    void receiveThread();
 
-    void SendThread();
+    void sendThread();
 };
 
 #endif // TCP_CLIENT_H

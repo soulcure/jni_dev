@@ -33,15 +33,15 @@ void TcpClient::Open(const char *ip, int port) {
     m_ip = ip;
     m_port = port;
     LOGD("TcpClient Open [%s]:[%d]", ip, port);
-    std::thread run(&TcpClient::Connect, this);// c11 create a thread to run reading.
+    std::thread run(&TcpClient::connectTcp, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
 }
 
-void TcpClient::setConnectStateListener(OnConnectState state) {
+void TcpClient::SetConnectStateListener(OnConnectState state) {
     m_connect_state = state;
 }
 
-void TcpClient::setReceiveListener(OnReceive state) {
+void TcpClient::SetReceiveListener(OnReceive state) {
     m_receive = state;
 }
 
@@ -83,13 +83,13 @@ void TcpClient::Send(PDUBase &base) {
 }
 
 
-void TcpClient::Connect() {
+void TcpClient::connectTcp() {
     LOGD("TCPClient Connecting to [%s]:[%d]", m_ip, m_port);
 
     socketFd = socket(AF_INET, SOCK_STREAM, 0); //ipv4,TCP数据连接
     if (socketFd < 0) {
         LOGE("create socketFd error...");
-        OnDisconnect();
+        onDisconnect();
         return;
     }
 
@@ -101,7 +101,7 @@ void TcpClient::Connect() {
 
     if (inet_pton(AF_INET, m_ip, &server_address.sin_addr) <= 0) { //设置ip地址
         LOGE("address ip error for [%s]", m_ip);
-        OnDisconnect();
+        onDisconnect();
         return;
     }
 
@@ -113,20 +113,20 @@ void TcpClient::Connect() {
     LOGD("TCPClient Connect result=%d", result);
     if (result != 0) {
         Close();
-        OnDisconnect();
+        onDisconnect();
         return;
     }
 
-    OnConnect(); //call callback while connected.
+    onConnect(); //call callback while connected.
 
-    std::thread run(&TcpClient::SendThread, this);// c11 create a thread to run reading.
+    std::thread run(&TcpClient::sendThread, this);// c11 create a thread to run reading.
     run.detach();  //子线程和main thread 完全分离
 
-    ReceiveThread();
+    receiveThread();
 }
 
 
-void TcpClient::ReceiveThread() {
+void TcpClient::receiveThread() {
     int total_length = 0;
     char *total_buffer = new char[BUFF_MAX];
     char *buf = new char[BUFF_LENGTH];
@@ -153,7 +153,7 @@ void TcpClient::ReceiveThread() {
                 //remove read data.
                 memmove(total_buffer, total_buffer + read_size, total_length - read_size);
                 total_length -= read_size;
-                OnReceiver(base);
+                onReceiver(base);
             }
 
             usleep(1);
@@ -174,7 +174,7 @@ void TcpClient::ReceiveThread() {
 }
 
 
-void TcpClient::SendThread() {
+void TcpClient::sendThread() {
     LOGD("TCPClient SendThread exit:[%d]", m_exit);
 
     while (!m_exit && socketFd >= 0) {
@@ -194,7 +194,7 @@ void TcpClient::SendThread() {
 
         LOGD("TCPClient SendThread send pdu buffer length:[%d]", len);
         if (len <= 0) {
-            OnDisconnect();
+            onDisconnect();
             return;
         }
         int totalLen = 0;
@@ -203,7 +203,7 @@ void TcpClient::SendThread() {
             int write_len = write(socketFd, buf + totalLen, len - totalLen);
             LOGD("TCPClient SendThread write_len:[%d]", write_len);
             if (write_len <= 0) {
-                OnDisconnect();
+                onDisconnect();
                 return;
             }
             totalLen += write_len;
@@ -216,21 +216,21 @@ void TcpClient::SendThread() {
 }
 
 
-void TcpClient::OnConnect() {
+void TcpClient::onConnect() {
     if (m_connect_state != nullptr) {
         std::string message = "tcp connect success";
         m_connect_state(0, message);
     }
 }
 
-void TcpClient::OnDisconnect() {
+void TcpClient::onDisconnect() {
     if (m_connect_state != nullptr) {
         std::string message = "tcp connect fail";
         m_connect_state(-1, message);
     }
 }
 
-void TcpClient::OnReceiver(PDUBase &base) {
+void TcpClient::onReceiver(PDUBase &base) {
     char *buffer = new char[base.length + 1];
     memcpy(buffer, base.body.get(), base.length);
     buffer[base.length] = 0;
