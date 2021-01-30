@@ -62,7 +62,7 @@ bool TcpServer::BindSocket(int sock, char *pAddr, int port) {
 
     sock_addr.sin_port = htons(port);
 
-    if (bind(sock, (struct sockaddr *) &sock_addr, sizeof(sock_addr)) < 0) {
+    if (::bind(sock, (struct sockaddr *) &sock_addr, sizeof(sock_addr)) < 0) {
         m_nSocketErr = SOCKET_BIND_ERROR;
         return false;
     }
@@ -77,7 +77,7 @@ bool TcpServer::ConnectSocket(int sock, const char *pAddr, int port) {
     sock_addr.sin_addr.s_addr = inet_addr(pAddr);
     sock_addr.sin_port = htons(port);
 
-    if (connect(sock, (struct sockaddr *) &sock_addr, sizeof(sock_addr)) < 0) {
+    if (::connect(sock, (struct sockaddr *) &sock_addr, sizeof(sock_addr)) < 0) {
         m_nSocketErr = SOCKET_CONNECT_ERROR;
         printf("connect failed[%d],[%s]\n", errno, strerror(errno));
         return false;
@@ -86,7 +86,7 @@ bool TcpServer::ConnectSocket(int sock, const char *pAddr, int port) {
 }
 
 bool TcpServer::ListenSocket(int sock, int conn_num) {
-    if (listen(sock, conn_num) < 0) {
+    if (::listen(sock, conn_num) < 0) {
         m_nSocketErr = SOCKET_LISTEN_ERROR;
         return false;
     }
@@ -101,7 +101,7 @@ int TcpServer::AcceptSocket(int sock, sockaddr_in &remote_addr) {
 #else
     socklen_t addr_size = (socklen_t) sizeof(remote_addr);
 #endif
-    int nConnSocket = accept(sock, (struct sockaddr *) &remote_addr, &addr_size);
+    int nConnSocket = ::accept(sock, (struct sockaddr *) &remote_addr, &addr_size);
     if (nConnSocket < 0) {
         m_nSocketErr = SOCKET_ACCEPT_ERROR;
     }
@@ -110,7 +110,7 @@ int TcpServer::AcceptSocket(int sock, sockaddr_in &remote_addr) {
 }
 
 int TcpServer::SendMsg(int sock, char *buf, int buf_len) {
-    int byte_send = send(sock, buf, buf_len, 0);
+    int byte_send = ::send(sock, buf, buf_len, 0);
     if (byte_send < 0) {
         m_nSocketErr = SOCKET_TRANSMIT_ERROR;
     }
@@ -124,7 +124,7 @@ int TcpServer::SendToMsg(int sock, char *pAddr, int port, char *buf, int buf_len
     sock_addr.sin_addr.s_addr = inet_addr(pAddr);
     sock_addr.sin_port = htons(port);
 
-    int byte_send = sendto(sock, buf, buf_len, 0, (struct sockaddr *) &sock_addr,
+    int byte_send = ::sendto(sock, buf, buf_len, 0, (struct sockaddr *) &sock_addr,
                            sizeof(sock_addr));
     if (byte_send < 0) {
         m_nSocketErr = SOCKET_TRANSMIT_ERROR;
