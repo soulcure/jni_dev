@@ -21,7 +21,7 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        log_util.cpp
+        log/log_util.cpp
         platform/android/java_call_cpp.cpp
         sdk_manager.cpp
 
