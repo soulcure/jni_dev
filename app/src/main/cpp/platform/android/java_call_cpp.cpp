@@ -2,8 +2,8 @@
 #include <jni.h>
 #include <string>
 #include <iostream>
-#include "net/tcp/client/tcp_client.h"
-#include "log_util.h"
+#include "../../net/tcp/client/tcp_client.h"
+#include "../../log_util.h"
 
 extern "C"
 {
