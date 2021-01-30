@@ -17,9 +17,7 @@ sdk_manager::sdk_manager() {
 
 sdk_manager::~sdk_manager() {
     LOGD("sdk_manager destructor");
-    if (tcp_client != nullptr) {
-        delete tcp_client;
-    }
+    delete tcp_client;
 }
 
 
