@@ -115,7 +115,7 @@ public:
     std::unordered_map<int, ConnectBuffer> recv_buffers;
 
 protected:
-    CSocketBase m_Sock;
+    TcpServer m_Sock;
 
     int listen_num;        //监听的SOCKET数量
     //char  m_sIp[16];		//服务端监听IP

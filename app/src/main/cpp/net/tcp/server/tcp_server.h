@@ -43,11 +43,11 @@ typedef struct {
     struct sockaddr_in addr; /* client's address information */
 } CLIENT;
 
-class CSocketBase {
+class TcpServer {
 public:
-    CSocketBase();
+    TcpServer();
 
-    virtual ~CSocketBase();
+    virtual ~TcpServer();
 
     bool SetBlock(int fd);
 

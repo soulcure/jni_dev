@@ -119,7 +119,6 @@ void accept_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *nod
     char ip[20] = {0};
     inet_ntop(AF_INET, (void *) &(clt_addr.sin_addr.s_addr), ip, 16);
 
-    //¶àÌ¬
     obj->OnConn(ip, port);
 }
 
