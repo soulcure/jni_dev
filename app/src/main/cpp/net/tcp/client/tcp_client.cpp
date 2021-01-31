@@ -89,7 +89,8 @@ void TcpClient::Send(PDUBase &base) {
 void TcpClient::connectTcp() {
     LOGD("TCPClient Connecting to [%s]:[%d]", m_ip, m_port);
 
-    socketFd = socket(AF_INET, SOCK_STREAM, 0); //ipv4,TCP数据连接
+    //参数 AF_INET 表示使用 IPv4 地址,SOCK_STREAM 表示使用面向连接的套接字，IPPROTO_TCP 表示使用 TCP 协议
+    socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4,TCP数据连接
     if (socketFd < 0) {
         LOGE("create socketFd error...");
         onDisconnect();
