@@ -58,22 +58,19 @@ void TcpClient::Close() {
 }
 
 
-void TcpClient::SendProto(char pdu_type, const char *message) {
+void TcpClient::SendProto(char pdu_type, int length, const char *message) {
     PDUBase pdu_base;
 
-    int size = strlen(message);
-    LOGD("PDUBase send body length:[%d]", size);
+    LOGD("TCPClient SendProto pdu_base pdu_type:[%d], body length:[%d]", pdu_type, length);
+    //std::shared_ptr<char> body(new char[length]);
+    std::shared_ptr<char> body = std::make_shared<char>(length);
 
-    //std::shared_ptr<char> body(new char[size]);
-    std::shared_ptr<char> body = std::make_shared<char>(size);
-
-    memcpy(body.get(), message, size);
+    memcpy(body.get(), message, length);
 
     pdu_base.pdu_type = pdu_type;
-    pdu_base.length = size;
+    pdu_base.length = length;
     pdu_base.body = body;
 
-    LOGD("TCPClient SendProto pdu_base pdu_type:[%d] length:[%d]", pdu_type, size);
 
     Send(pdu_base);
 }

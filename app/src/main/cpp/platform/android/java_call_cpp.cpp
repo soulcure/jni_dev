@@ -24,8 +24,9 @@ Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip,
 JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring message) {
     const char *p_message = env->GetStringUTFChars(message, JNI_FALSE);
+    int length = strlen(p_message);
 
-    sdk_manager::Get().send_message(p_message);
+    sdk_manager::Get().send_message(length, p_message);
 
     env->ReleaseStringUTFChars(message, p_message);
 }
@@ -34,12 +35,10 @@ Java_com_coocaa_socket_UtilJni_sendString(JNIEnv *env, jclass clazz, jstring mes
 JNIEXPORT void JNICALL
 Java_com_coocaa_socket_UtilJni_sendBytes(JNIEnv *env, jclass clazz, jbyteArray byteArray) {
     jbyte *temp = env->GetByteArrayElements(byteArray, JNI_FALSE);
-    int chars_len = env->GetArrayLength(byteArray);
-
     char *p_message = (char *) temp;
-    p_message[chars_len] = 0;
+    int length = env->GetArrayLength(byteArray);
 
-    sdk_manager::Get().send_bytes(p_message);
+    sdk_manager::Get().send_bytes(length, p_message);
 
     env->ReleaseByteArrayElements(byteArray, temp, JNI_FALSE);
 

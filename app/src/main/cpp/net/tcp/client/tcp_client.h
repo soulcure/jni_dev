@@ -30,7 +30,7 @@ public:
 
     void Send(PDUBase &base);
 
-    void SendProto(char pdu_type, const char *message);
+    void SendProto(char pdu_type, int length, const char *message);
 
 private:
     int m_port{}; //0  since C++11

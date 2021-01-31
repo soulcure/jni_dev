@@ -26,16 +26,16 @@ void sdk_manager::create_tcp_client(const char *ip, int port) {
     tcp_client->Open(ip, port);
 }
 
-void sdk_manager::send_message(const char *message) {
+void sdk_manager::send_message(int length, const char *message) {
     LOGD("send_message:[%s]", message);
-    tcp_client->SendProto(PDUBase::LOCAL_STRING, message);
+    tcp_client->SendProto(PDUBase::LOCAL_STRING, length, message);
 
 }
 
 
-void sdk_manager::send_bytes(const char *message) {
+void sdk_manager::send_bytes(int length, const char *message) {
     LOGD("send_bytes:[%s]", message);
-    tcp_client->SendProto(PDUBase::LOCAL_BYTES, message);
+    tcp_client->SendProto(PDUBase::LOCAL_BYTES, length, message);
 }
 
 
