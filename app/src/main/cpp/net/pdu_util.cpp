@@ -77,7 +77,9 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     if (position - buffer + base.length > length)
         return 0;
 
-    std::shared_ptr<char> pBody(new char[base.length]);
+    // std::shared_ptr<char> pBody(new char[base.length]);
+    std::shared_ptr<char> pBody = std::make_shared<char>(base.length);
+
     memcpy(pBody.get(), position, base.length);
     base.body = pBody;
 
@@ -109,6 +111,7 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
 
     long presentationTimeUs = htonq(base.presentationTimeUs);
     totalLen += sizeof(long);
+    LOGD("size of long:[%d]", sizeof(long));
 
     int flags = htonl(base.flags);
     totalLen += sizeof(int);
@@ -120,7 +123,7 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     totalLen += sizeof(int);
 
     totalLen += base.length;
-    char *buf = (char *) malloc(totalLen);
+    char *buf = (char *) malloc(totalLen); //malloc memory,need free
     if (buf == nullptr)
         return -1;
 
@@ -152,6 +155,7 @@ int PduUtil::OnPduPack(PDUBase &base, char *&outBuffer /*this is return value*/)
     memcpy(buf + offset, base.body.get(), base.length);
     outBuffer = buf;
 
+    LOGD("PDUBase send body length:[%d]", base.length);
     return totalLen;
 
 }

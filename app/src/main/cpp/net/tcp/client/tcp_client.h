@@ -8,6 +8,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>    // std::condition_variable
+#include <functional>   // std::mem_fn
 
 class TcpClient : public PduUtil {
 public:

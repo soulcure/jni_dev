@@ -13,8 +13,8 @@
 #include <iostream>
 #include <errno.h>
 
-#define BUFF_MAX 1024*1000
-#define BUFF_LENGTH 1024*5
+#define BUFF_MAX 1024*512   //512KB
+#define BUFF_LENGTH 1024*5  //5KB
 
 
 TcpClient::TcpClient(OnConnectState state, OnReceive receive)
@@ -33,8 +33,11 @@ void TcpClient::Open(const char *ip, int port) {
     m_ip = ip;
     m_port = port;
     LOGD("TcpClient Open [%s]:[%d]", ip, port);
-    std::thread run(&TcpClient::connectTcp, this);// c11 create a thread to run reading.
-    run.detach();  //子线程和main thread 完全分离
+    //std::thread run(&TcpClient::connectTcp, this);// c11 create a thread to run reading.
+    //run.detach();  //子线程和main thread 完全分离
+
+    std::thread t(std::mem_fn(&TcpClient::connectTcp), this);//使用类的成员函数作为线程参数
+    t.detach();   //与当前线程分离
 }
 
 void TcpClient::SetConnectStateListener(OnConnectState state) {
@@ -119,8 +122,11 @@ void TcpClient::connectTcp() {
 
     onConnect(); //call callback while connected.
 
-    std::thread run(&TcpClient::sendThread, this);// c11 create a thread to run reading.
-    run.detach();  //子线程和main thread 完全分离
+    //std::thread run(&TcpClient::sendThread, this);// c11 create a thread to run reading. 此写法不支持传参
+    //run.detach();  //与当前线程分离
+
+    std::thread t(std::mem_fn(&TcpClient::sendThread), this);//使用类的成员函数作为线程参数
+    t.detach();   //与当前线程分离
 
     receiveThread();
 }
@@ -133,7 +139,7 @@ void TcpClient::receiveThread() {
     PDUBase base;
 
     while (true) {
-        int len = 0;
+        int len;
         memset(buf, 0, BUFF_LENGTH);
         LOGD("TCPClient ReceiveThread start...");
 
@@ -169,13 +175,12 @@ void TcpClient::receiveThread() {
             delete[]buf;
             break;
         }
-
     }
 }
 
 
 void TcpClient::sendThread() {
-    LOGD("TCPClient SendThread exit:[%d]", m_exit);
+    LOGD("TCPClient SendThread Start...$exit:[%d]", m_exit);
 
     while (!m_exit && socketFd >= 0) {
         LOGD("TCPClient SendThread start socketFd:[%d]", socketFd);
@@ -197,21 +202,24 @@ void TcpClient::sendThread() {
             onDisconnect();
             return;
         }
+
         int totalLen = 0;
         //若缓冲区满引起发送不完全时，需要循环发送直至数据完整
         while (totalLen < len) {
             int write_len = write(socketFd, buf + totalLen, len - totalLen);
             LOGD("TCPClient SendThread write_len:[%d]", write_len);
             if (write_len <= 0) {
+                free(buf);
                 onDisconnect();
                 return;
             }
             totalLen += write_len;
         }
-        LOGD("TCP Send Data Out");
         free(buf);
+        LOGD("TCP Send Data Out");
     }
-    LOGD("TCPClient SendThread exit...");
+
+    LOGE("TCPClient SendThread exit...");
 
 }
 
