@@ -64,7 +64,9 @@ void TcpClient::SendProto(char pdu_type, const char *message) {
     int size = strlen(message);
     LOGD("PDUBase send body length:[%d]", size);
 
-    std::shared_ptr<char> body(new char[size]);
+    //std::shared_ptr<char> body(new char[size]);
+    std::shared_ptr<char> body = std::make_shared<char>(size);
+
     memcpy(body.get(), message, size);
 
     pdu_base.pdu_type = pdu_type;
