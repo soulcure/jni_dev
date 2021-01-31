@@ -33,10 +33,10 @@ public:
     void SendProto(char pdu_type, const char *message);
 
 private:
-    int m_port;
-    const char *m_ip;
-    int socketFd;
-    bool m_exit;
+    int m_port{}; //0  since C++11
+    const char *m_ip{};  //nullptr  since C++11
+    int socketFd{};
+    bool m_exit{};
     std::queue<PDUBase> m_queue;   // 全局消息队列
     std::mutex mtx;        // 全局互斥锁
     std::condition_variable interrupt;

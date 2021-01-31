@@ -97,11 +97,11 @@ void TcpClient::connectTcp() {
         return;
     }
 
-    struct sockaddr_in server_address{};
-    memset(&server_address, 0, sizeof(server_address));
-    server_address.sin_family = AF_INET;  //使用IPV4地址
-    server_address.sin_port = htons(m_port); //端口 host to network short
-    if (inet_pton(AF_INET, m_ip, &server_address.sin_addr) <= 0) { //字符串IP地址 转化为int 32网络序列IP地址
+    struct sockaddr_in sockAddress{};  //T object {} since C++11  Value initialization
+    memset(&sockAddress, 0, sizeof(sockAddress));  //T object {} no need zero set
+    sockAddress.sin_family = AF_INET;  //使用IPV4地址
+    sockAddress.sin_port = htons(m_port); //端口 host to network short
+    if (inet_pton(AF_INET, m_ip, &sockAddress.sin_addr) <= 0) { //字符串IP地址 转化为int 32网络序列IP地址
         LOGE("address ip error for [%s]", m_ip);
         onDisconnect();
         return;
@@ -111,7 +111,7 @@ void TcpClient::connectTcp() {
     socklen_t len = 0;
     getsockopt(socketFd, SOL_SOCKET, SO_SNDTIMEO, &time, &len);  //设置socket option
 
-    int result = connect(socketFd, (struct sockaddr *) &server_address, sizeof(server_address));
+    int result = connect(socketFd, (struct sockaddr *) &sockAddress, sizeof(sockAddress));
     LOGD("TCPClient Connect result=%d", result);
     if (result != 0) {
         Close();
