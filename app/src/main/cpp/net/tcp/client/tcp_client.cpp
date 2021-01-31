@@ -1,8 +1,5 @@
-#include "../../../log/log_util.h"
 #include "tcp_client.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -11,7 +8,8 @@
 #include <unistd.h>
 #include <thread>
 #include <iostream>
-#include <errno.h>
+#include <cerrno>
+#include "../../../log/log_util.h"
 
 #define BUFF_MAX 1024*512   //512KB
 #define BUFF_LENGTH 1024*5  //5KB

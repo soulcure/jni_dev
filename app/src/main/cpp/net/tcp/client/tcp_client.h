@@ -1,14 +1,15 @@
 #ifndef TCP_CLIENT_H
 #define TCP_CLIENT_H
 
-#include "../../pdu_base.h"
-#include "../../pdu_util.h"
 #include <string>
 #include <vector>
 #include <queue>
 #include <mutex>
 #include <condition_variable>    // std::condition_variable
 #include <functional>   // std::mem_fn
+
+#include "../../pdu_base.h"
+#include "../../pdu_util.h"
 
 class TcpClient : public PduUtil {
 public:
