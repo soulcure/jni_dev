@@ -38,7 +38,7 @@ void TcpServer::SetReuse(int sock) {
 }
 
 void TcpServer::SetLinger(int sock) {
-    struct linger ling;
+    struct linger ling{};
     ling.l_onoff = 1;
     ling.l_linger = 0;
     setsockopt(sock, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
@@ -54,11 +54,12 @@ int TcpServer::CreateSocket(int type) {
 }
 
 bool TcpServer::BindSocket(int sock, char *pAddr, int port) {
-    struct sockaddr_in sock_addr;
+    struct sockaddr_in sock_addr{};
     sock_addr.sin_family = AF_INET;
 
-    //  sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    sock_addr.sin_addr.s_addr = inet_addr(pAddr);
+    //用inet_pton(AF_INET, pAddr, &sock_addr.sin_addr) 代替 sock_addr.sin_addr.s_addr = inet_addr(pAddr);
+    //sock_addr.sin_addr.s_addr = inet_addr(pAddr);  //将一个点间隔地址 转换整数形式的IP地址
+    inet_pton(AF_INET, pAddr, &sock_addr.sin_addr);
 
     sock_addr.sin_port = htons(port);
 
@@ -125,7 +126,7 @@ int TcpServer::SendToMsg(int sock, char *pAddr, int port, char *buf, int buf_len
     sock_addr.sin_port = htons(port);
 
     int byte_send = ::sendto(sock, buf, buf_len, 0, (struct sockaddr *) &sock_addr,
-                           sizeof(sock_addr));
+                             sizeof(sock_addr));
     if (byte_send < 0) {
         m_nSocketErr = SOCKET_TRANSMIT_ERROR;
     }

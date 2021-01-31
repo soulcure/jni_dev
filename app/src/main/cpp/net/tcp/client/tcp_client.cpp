@@ -100,9 +100,7 @@ void TcpClient::connectTcp() {
     memset(&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;  //使用IPV4地址
     server_address.sin_port = htons(m_port); //端口 host to network short
-    inet_aton(m_ip, &server_address.sin_addr);
-
-    if (inet_pton(AF_INET, m_ip, &server_address.sin_addr) <= 0) { //设置ip地址
+    if (inet_pton(AF_INET, m_ip, &server_address.sin_addr) <= 0) { //字符串IP地址 转化为int 32网络序列IP地址
         LOGE("address ip error for [%s]", m_ip);
         onDisconnect();
         return;
