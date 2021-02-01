@@ -77,9 +77,7 @@ int PduUtil::OnPduParse(char *buffer, int length, PDUBase &base /*return value*/
     if (position - buffer + base.length > length)
         return 0;
 
-    // std::shared_ptr<char> pBody(new char[base.length]);
-    std::shared_ptr<char> pBody = std::make_shared<char>(base.length);
-
+    std::shared_ptr<char> pBody(new char[base.length]);
     memcpy(pBody.get(), position, base.length);
     base.body = pBody;
 
