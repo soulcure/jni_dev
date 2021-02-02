@@ -8,6 +8,7 @@
 #include "net/tcp/client/tcp_client.h"
 #include "log/log_util.h"
 #include "net/pdu_base.h"
+#include "platform/android/cpp_call_java.h"
 
 class sdk_manager {
 public:

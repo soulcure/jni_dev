@@ -10,7 +10,10 @@ sdk_manager::sdk_manager() {
         LOGD("tcp client connect result code:%d message:%s", code, message.c_str());
     };
     onReceiveListener = [](PDUBase &pdu) {
-        LOGD("tcp client receive pdu");
+        const char *buf = pdu.body.get();
+        int len = pdu.length;
+        LOGD("ConReceivePdu buffer size:[%d]", len);
+        ConReceivePdu(buf, len);
     };
     tcp_client = new TcpClient(onConnectStateListener, onReceiveListener);
 }

@@ -35,7 +35,7 @@ public:
 
 private:
     int m_port{}; //0  since C++11
-    const char *m_ip{};  //nullptr  since C++11
+    std::shared_ptr<char> m_ip;
     int socketFd{};
     bool m_exit{};
     std::queue<PDUBase> m_queue;   // 全局消息队列

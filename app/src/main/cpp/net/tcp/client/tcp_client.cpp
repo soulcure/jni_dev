@@ -17,7 +17,7 @@
 
 TcpClient::TcpClient(OnConnectState state, OnReceive receive)
         : m_connect_state(state), m_receive(receive) {
-
+    m_ip = std::make_shared<char>();
 }
 
 TcpClient::~TcpClient() {
@@ -28,7 +28,7 @@ TcpClient::~TcpClient() {
 
 void TcpClient::Open(const char *ip, int port) {
     m_exit = false;
-    m_ip = ip;
+    memcpy(m_ip.get(), ip, strlen(ip));
     m_port = port;
     LOGD("TcpClient Open [%s]:[%d]", ip, port);
     //std::thread run(&TcpClient::connectTcp, this);// c11 create a thread to run reading.
@@ -82,7 +82,8 @@ void TcpClient::Send(PDUBase &base) {
 
 
 void TcpClient::connectTcp() {
-    LOGD("TCPClient Connecting to [%s]:[%d]", m_ip, m_port);
+    const char *ip = m_ip.get();
+    LOGD("TCPClient Connecting to [%s]:[%d]", ip, m_port);
 
     //参数 AF_INET 表示使用 IPv4 地址,SOCK_STREAM 表示使用面向连接的套接字，IPPROTO_TCP 表示使用 TCP 协议
     socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4,TCP数据连接
@@ -96,8 +97,8 @@ void TcpClient::connectTcp() {
     memset(&sockAddress, 0, sizeof(sockAddress));  //T object {} no need zero set
     sockAddress.sin_family = AF_INET;  //使用IPV4地址
     sockAddress.sin_port = htons(m_port); //端口 host to network short
-    if (inet_pton(AF_INET, m_ip, &sockAddress.sin_addr) <= 0) { //字符串IP地址 转化为int 32网络序列IP地址
-        LOGE("address ip error for [%s]", m_ip);
+    if (inet_pton(AF_INET, ip, &sockAddress.sin_addr) <= 0) { //字符串IP地址 转化为int 32网络序列IP地址
+        LOGE("address ip error for [%s]", ip);
         onDisconnect();
         return;
     }
