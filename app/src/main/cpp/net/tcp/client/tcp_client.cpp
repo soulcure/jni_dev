@@ -17,7 +17,6 @@
 
 TcpClient::TcpClient(OnConnectState state, OnReceive receive)
         : m_connect_state(state), m_receive(receive) {
-    m_ip = std::make_shared<char>();
 }
 
 TcpClient::~TcpClient() {
@@ -26,11 +25,11 @@ TcpClient::~TcpClient() {
     }
 }
 
-void TcpClient::Open(const char *ip, int port) {
+void TcpClient::Open(std::string ip, int port) {
     m_exit = false;
-    memcpy(m_ip.get(), ip, strlen(ip));
+    m_ip = ip;
     m_port = port;
-    LOGD("TcpClient Open [%s]:[%d]", ip, port);
+    LOGD("TcpClient Open [%s]:[%d]", ip.c_str(), port);
     //std::thread run(&TcpClient::connectTcp, this);// c11 create a thread to run reading.
     //run.detach();  //子线程和main thread 完全分离
 
@@ -82,7 +81,7 @@ void TcpClient::Send(PDUBase &base) {
 
 
 void TcpClient::connectTcp() {
-    const char *ip = m_ip.get();
+    const char *ip = m_ip.c_str();
     LOGD("TCPClient Connecting to [%s]:[%d]", ip, m_port);
 
     //参数 AF_INET 表示使用 IPv4 地址,SOCK_STREAM 表示使用面向连接的套接字，IPPROTO_TCP 表示使用 TCP 协议

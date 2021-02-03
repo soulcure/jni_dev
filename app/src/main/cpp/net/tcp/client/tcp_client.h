@@ -21,7 +21,7 @@ public:
 
     ~TcpClient();
 
-    void Open(const char *ip, int port);
+    void Open(std::string ip, int port);
 
     void SetConnectStateListener(OnConnectState state);
 
@@ -35,7 +35,7 @@ public:
 
 private:
     int m_port{}; //0  since C++11
-    std::shared_ptr<char> m_ip;
+    std::string m_ip;
     int socketFd{};
     bool m_exit{};
     std::queue<PDUBase> m_queue;   // 全局消息队列
