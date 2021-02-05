@@ -16,9 +16,9 @@ jclass _getClassID(const char *className) {
 
     JNIEnv *env = JniHelper::getEnv();
     jstring _jClassName = env->NewStringUTF(className);
-    jclass _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
-                                                   JniHelper::_methodID,
-                                                   _jClassName);
+    auto _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
+                                                 JniHelper::_methodID,
+                                                 _jClassName);
     if (nullptr == _clazz) {
         LOGE("Classloader failed to find class of %s", className);
         env->ExceptionClear();
@@ -34,38 +34,20 @@ void _detachCurrentThread(void *a) {
 }
 
 
-void _ConReceivePdu(const char *buf, int len) {
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "onReceivePdu", "([B)V")) {
-        jbyteArray byteArray = t.env->NewByteArray(len);
-        if (buf != nullptr) {
-            t.env->SetByteArrayRegion(byteArray, 0, len, (jbyte *) buf);
-        }
-        t.env->CallStaticVoidMethod(t.classID, t.methodID, byteArray);
-        t.env->DeleteLocalRef(byteArray);
-        t.env->DeleteLocalRef(t.classID);
-    }
-}
-
-
 JavaVM *JniHelper::_psJavaVM = nullptr;
 jmethodID JniHelper::_methodID = nullptr;
 jobject JniHelper::_classLoader = nullptr;
 std::function<void()> JniHelper::classloaderCallback = nullptr;
 
+
 jobject JniHelper::_context = nullptr;
 
 JavaVM *JniHelper::getJavaVM() {
-    pthread_t thisthread = pthread_self();
-    LOGD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
     return _psJavaVM;
 }
 
 void JniHelper::setJavaVM(JavaVM *javaVM) {
-    pthread_t thisthread = pthread_self();
-    LOGD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
     _psJavaVM = javaVM;
-
     pthread_key_create(&g_key, _detachCurrentThread);
 }
 
@@ -273,5 +255,14 @@ void JniHelper::reportError(const std::string &className, const std::string &met
 
 
 void JniHelper::ConReceivePdu(const char *buf, int len) {
-    _ConReceivePdu(buf, len);
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "onReceivePdu", "([B)V")) {
+        jbyteArray byteArray = t.env->NewByteArray(len);
+        if (buf != nullptr) {
+            t.env->SetByteArrayRegion(byteArray, 0, len, (jbyte *) buf);
+        }
+        t.env->CallStaticVoidMethod(t.classID, t.methodID, byteArray);
+        t.env->DeleteLocalRef(byteArray);
+        t.env->DeleteLocalRef(t.classID);
+    }
 }
