@@ -25,7 +25,7 @@ TcpClient::~TcpClient() {
     }
 }
 
-void TcpClient::Open(std::string ip, int port) {
+void TcpClient::Open(const std::string& ip, int port) {
     m_exit = false;
     m_ip = ip;
     m_port = port;

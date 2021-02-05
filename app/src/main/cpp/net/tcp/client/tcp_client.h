@@ -21,7 +21,7 @@ public:
 
     ~TcpClient();
 
-    void Open(std::string ip, int port);
+    void Open(const std::string& ip, int port);
 
     void SetConnectStateListener(OnConnectState state);
 
