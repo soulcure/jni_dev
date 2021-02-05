@@ -9,38 +9,25 @@
 
 static pthread_key_t g_key;
 
-jclass _getClassID(const char *className) {
-    if (nullptr == className) {
-        return nullptr;
-    }
-
-    JNIEnv *env = JniHelper::getEnv();
-    jstring _jClassName = env->NewStringUTF(className);
-    auto _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
-                                                 JniHelper::_methodID,
-                                                 _jClassName);
-    if (nullptr == _clazz) {
-        LOGE("Classloader failed to find class of %s", className);
-        env->ExceptionClear();
-    }
-
-    env->DeleteLocalRef(_jClassName);
-
-    return _clazz;
-}
-
-void _detachCurrentThread(void *a) {
-    JniHelper::getJavaVM()->DetachCurrentThread();
-}
-
-
 JavaVM *JniHelper::_psJavaVM = nullptr;
 jmethodID JniHelper::_methodID = nullptr;
 jobject JniHelper::_classLoader = nullptr;
+jobject JniHelper::_context = nullptr;
 std::function<void()> JniHelper::classloaderCallback = nullptr;
 
+void JniHelper::ConReceivePdu(const char *buf, int len) {
+    JniMethodInfo t;
+    if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "onReceivePdu", "([B)V")) {
+        jbyteArray byteArray = t.env->NewByteArray(len);
+        if (buf != nullptr) {
+            t.env->SetByteArrayRegion(byteArray, 0, len, (jbyte *) buf);
+        }
+        t.env->CallStaticVoidMethod(t.classID, t.methodID, byteArray);
+        t.env->DeleteLocalRef(byteArray);
+        t.env->DeleteLocalRef(t.classID);
+    }
+}
 
-jobject JniHelper::_context = nullptr;
 
 JavaVM *JniHelper::getJavaVM() {
     return _psJavaVM;
@@ -254,15 +241,31 @@ void JniHelper::reportError(const std::string &className, const std::string &met
 }
 
 
-void JniHelper::ConReceivePdu(const char *buf, int len) {
-    JniMethodInfo t;
-    if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "onReceivePdu", "([B)V")) {
-        jbyteArray byteArray = t.env->NewByteArray(len);
-        if (buf != nullptr) {
-            t.env->SetByteArrayRegion(byteArray, 0, len, (jbyte *) buf);
-        }
-        t.env->CallStaticVoidMethod(t.classID, t.methodID, byteArray);
-        t.env->DeleteLocalRef(byteArray);
-        t.env->DeleteLocalRef(t.classID);
+jclass JniHelper::_getClassID(const char *className) {
+    if (nullptr == className) {
+        return nullptr;
     }
+
+    JNIEnv *env = JniHelper::getEnv();
+    jstring _jClassName = env->NewStringUTF(className);
+    auto _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
+                                                 JniHelper::_methodID,
+                                                 _jClassName);
+    if (nullptr == _clazz) {
+        LOGE("Classloader failed to find class of %s", className);
+        env->ExceptionClear();
+    }
+
+    env->DeleteLocalRef(_jClassName);
+
+    return _clazz;
 }
+
+void JniHelper::_detachCurrentThread(void *p) {
+    JniHelper::getJavaVM()->DetachCurrentThread();
+}
+
+
+
+
+
