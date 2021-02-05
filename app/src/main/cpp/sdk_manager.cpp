@@ -3,6 +3,7 @@
 //
 
 #include "sdk_manager.h"
+#include "platform/android/jni_helper.h"
 
 sdk_manager::sdk_manager() {
     LOGD("sdk_manager constructor");
@@ -13,7 +14,7 @@ sdk_manager::sdk_manager() {
         const char *buf = pdu.body.get();
         int len = pdu.length;
         LOGD("ConReceivePdu buffer size:[%d]", len);
-        ConReceivePdu(buf, len);
+        JniHelper::ConReceivePdu(buf, len);
     };
     tcp_client = new TcpClient(onConnectStateListener, onReceiveListener);
 }

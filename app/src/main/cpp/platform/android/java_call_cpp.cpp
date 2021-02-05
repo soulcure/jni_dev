@@ -4,6 +4,7 @@
 #include <iostream>
 #include "../../net/tcp/client/tcp_client.h"
 #include "../../log/log_util.h"
+#include "jni_helper.h"
 
 extern "C"
 {
@@ -17,6 +18,10 @@ Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip,
     const char *p_ip = env->GetStringUTFChars(ip, JNI_FALSE);
 
     sdk_manager::Get().create_tcp_client(p_ip, port);
+    /*const char *buf = "hello";
+    int len = 5;
+    LOGD("ConReceivePdu buffer size:[%d]", len);
+    JniHelper::ConReceivePdu(buf, len);*/
 
     env->ReleaseStringUTFChars(ip, p_ip);
 }

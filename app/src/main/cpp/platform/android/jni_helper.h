@@ -5,7 +5,6 @@
 #include <string>
 #include "../../log/log_util.h"
 
-
 typedef struct JniMethodInfo_ {
     JNIEnv *env;
     jclass classID;
@@ -15,28 +14,14 @@ typedef struct JniMethodInfo_ {
 
 class JniHelper {
 public:
-
-    static JNIEnv * getJNIEnv();
-
-    static void setJNIEnv(JNIEnv *pEnv);
-
     static JavaVM *getJavaVM();
 
     static void setJavaVM(JavaVM *javaVM);
 
-    static jclass getClassID(const char *className, JNIEnv *env = 0);
-
-    static bool getStaticMethodInfo(JniMethodInfo &methodinfo, const char *className,
-                                    const char *methodName, const char *paramCode);
-
-    static bool getMethodInfo(JniMethodInfo &methodinfo, const char *className,
-                              const char *methodName, const char *paramCode);
-
-    static std::string jString2string(jstring str);
+    static void ConReceivePdu(const char *buf, int len);
 
 private:
     static JavaVM *s_JavaVM;
-    static JNIEnv *s_pEnv;;
 };
 
 #endif // __ANDROID_JNI_HELPER_H__
