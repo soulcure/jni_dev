@@ -15,16 +15,16 @@ jclass _getClassID(const char *className) {
     }
 
     JNIEnv *env = JniHelper::getEnv();
-    jstring _jstrClassName = env->NewStringUTF(className);
-    jclass _clazz = (jclass) env->CallObjectMethod(JniHelper::classloader,
-                                                   JniHelper::loadclassMethod_methodID,
-                                                   _jstrClassName);
+    jstring _jClassName = env->NewStringUTF(className);
+    jclass _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
+                                                   JniHelper::_methodID,
+                                                   _jClassName);
     if (nullptr == _clazz) {
         LOGE("Classloader failed to find class of %s", className);
         env->ExceptionClear();
     }
 
-    env->DeleteLocalRef(_jstrClassName);
+    env->DeleteLocalRef(_jClassName);
 
     return _clazz;
 }
@@ -49,11 +49,11 @@ void _ConReceivePdu(const char *buf, int len) {
 
 
 JavaVM *JniHelper::_psJavaVM = nullptr;
-jmethodID JniHelper::loadclassMethod_methodID = nullptr;
-jobject JniHelper::classloader = nullptr;
+jmethodID JniHelper::_methodID = nullptr;
+jobject JniHelper::_classLoader = nullptr;
 std::function<void()> JniHelper::classloaderCallback = nullptr;
 
-jobject JniHelper::_activity = nullptr;
+jobject JniHelper::_context = nullptr;
 
 JavaVM *JniHelper::getJavaVM() {
     pthread_t thisthread = pthread_self();
@@ -108,8 +108,8 @@ JNIEnv *JniHelper::getEnv() {
     return _env;
 }
 
-jobject JniHelper::getActivity() {
-    return _activity;
+jobject JniHelper::getContext() {
+    return _context;
 }
 
 bool JniHelper::setClassLoaderFrom(jobject content) {
@@ -135,9 +135,9 @@ bool JniHelper::setClassLoaderFrom(jobject content) {
         return false;
     }
 
-    JniHelper::classloader = JniHelper::getEnv()->NewGlobalRef(obj);
-    JniHelper::loadclassMethod_methodID = _m.methodID;
-    JniHelper::_activity = JniHelper::getEnv()->NewGlobalRef(content);
+    JniHelper::_classLoader = JniHelper::getEnv()->NewGlobalRef(obj);
+    JniHelper::_methodID = _m.methodID;
+    JniHelper::_context = JniHelper::getEnv()->NewGlobalRef(content);
     if (JniHelper::classloaderCallback != nullptr) {
         JniHelper::classloaderCallback();
     }
@@ -145,7 +145,7 @@ bool JniHelper::setClassLoaderFrom(jobject content) {
     return true;
 }
 
-bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodinfo,
+bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodInfo,
                                     const char *className,
                                     const char *methodName,
                                     const char *paramCode) {
@@ -175,13 +175,13 @@ bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodinfo,
         return false;
     }
 
-    methodinfo.classID = classID;
-    methodinfo.env = env;
-    methodinfo.methodID = methodID;
+    methodInfo.classID = classID;
+    methodInfo.env = env;
+    methodInfo.methodID = methodID;
     return true;
 }
 
-bool JniHelper::getMethodInfo_DefaultClassLoader(JniMethodInfo &methodinfo,
+bool JniHelper::getMethodInfo_DefaultClassLoader(JniMethodInfo &methodInfo,
                                                  const char *className,
                                                  const char *methodName,
                                                  const char *paramCode) {
@@ -210,14 +210,14 @@ bool JniHelper::getMethodInfo_DefaultClassLoader(JniMethodInfo &methodinfo,
         return false;
     }
 
-    methodinfo.classID = classID;
-    methodinfo.env = env;
-    methodinfo.methodID = methodID;
+    methodInfo.classID = classID;
+    methodInfo.env = env;
+    methodInfo.methodID = methodID;
 
     return true;
 }
 
-bool JniHelper::getMethodInfo(JniMethodInfo &methodinfo,
+bool JniHelper::getMethodInfo(JniMethodInfo &methodInfo,
                               const char *className,
                               const char *methodName,
                               const char *paramCode) {
@@ -246,9 +246,9 @@ bool JniHelper::getMethodInfo(JniMethodInfo &methodinfo,
         return false;
     }
 
-    methodinfo.classID = classID;
-    methodinfo.env = env;
-    methodinfo.methodID = methodID;
+    methodInfo.classID = classID;
+    methodInfo.env = env;
+    methodInfo.methodID = methodID;
 
     return true;
 }

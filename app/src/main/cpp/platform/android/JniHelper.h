@@ -8,13 +8,12 @@
 #include <functional>
 
 
-
-
 typedef struct JniMethodInfo_ {
     JNIEnv *env;
     jclass classID;
     jmethodID methodID;
 } JniMethodInfo;
+
 
 class JniHelper {
 public:
@@ -27,16 +26,16 @@ public:
 
     static JNIEnv *getEnv();
 
-    static jobject getActivity();
+    static jobject getContext();
 
     static bool setClassLoaderFrom(jobject activityInstance);
 
-    static bool getStaticMethodInfo(JniMethodInfo &methodinfo,
+    static bool getStaticMethodInfo(JniMethodInfo &methodInfo,
                                     const char *className,
                                     const char *methodName,
                                     const char *paramCode);
 
-    static bool getMethodInfo(JniMethodInfo &methodinfo,
+    static bool getMethodInfo(JniMethodInfo &methodInfo,
                               const char *className,
                               const char *methodName,
                               const char *paramCode);
@@ -44,8 +43,8 @@ public:
 
     static void ConReceivePdu(const char *buf, int len);
 
-    static jmethodID loadclassMethod_methodID;
-    static jobject classloader;
+    static jmethodID _methodID;
+    static jobject _classLoader;
     static std::function<void()> classloaderCallback;
 
 
@@ -60,7 +59,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")V";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             t.env->CallStaticVoidMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
             t.env->DeleteLocalRef(t.classID);
@@ -82,7 +81,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")Z";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             jret = t.env->CallStaticBooleanMethod(t.classID, t.methodID,
                                                   convert(localRefs, t, xs)...);
@@ -106,7 +105,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")I";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallStaticIntMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
             t.env->DeleteLocalRef(t.classID);
@@ -129,7 +128,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")F";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallStaticFloatMethod(t.classID, t.methodID, convert(localRefs, t, xs)...);
             t.env->DeleteLocalRef(t.classID);
@@ -152,7 +151,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")[F";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             jfloatArray array = (jfloatArray) t.env->CallStaticObjectMethod(t.classID, t.methodID,
                                                                             convert(localRefs, t,
@@ -186,7 +185,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")[I";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             jintArray array = (jintArray) t.env->CallStaticObjectMethod(t.classID, t.methodID,
                                                                         convert(localRefs, t,
@@ -221,7 +220,7 @@ public:
         JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")D";
         if (JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(),
-                                                    signature.c_str())) {
+                                           signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallStaticDoubleMethod(t.classID, t.methodID,
                                                 convert(localRefs, t, xs)...);
@@ -234,7 +233,6 @@ public:
     }
 
 
-
 private:
     static JNIEnv *cacheEnv(JavaVM *jvm);
 
@@ -245,12 +243,8 @@ private:
 
     static JavaVM *_psJavaVM;
 
-    static jobject _activity;
+    static jobject _context;
 
-    static jstring convert(LocalRefMapType &localRefs, JniMethodInfo &t, const char *x);
-
-    static jstring
-    convert(LocalRefMapType &localRefs, JniMethodInfo &t, const std::string &x);
 
     inline static jint convert(LocalRefMapType &, JniMethodInfo &,
                                int32_t value) { return static_cast<jint>(value); }
