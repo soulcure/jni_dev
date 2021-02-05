@@ -12,8 +12,6 @@ static pthread_key_t g_key;
 JavaVM *JniHelper::_psJavaVM = nullptr;
 jmethodID JniHelper::_methodID = nullptr;
 jobject JniHelper::_classLoader = nullptr;
-jobject JniHelper::_context = nullptr;
-std::function<void()> JniHelper::classloaderCallback = nullptr;
 
 void JniHelper::ConReceivePdu(const char *buf, int len) {
     JniMethodInfo t;
@@ -106,12 +104,6 @@ bool JniHelper::setClassLoaderFrom(jobject context) {
 
     JniHelper::_classLoader = JniHelper::getEnv()->NewGlobalRef(obj);
     JniHelper::_methodID = class_loader.methodID;
-    JniHelper::_context = JniHelper::getEnv()->NewGlobalRef(context);
-    if (JniHelper::classloaderCallback != nullptr) {
-        LOGD("DefaultClassLoader classloaderCallback");
-        JniHelper::classloaderCallback();
-    }
-
     LOGD("DefaultClassLoader success");
     return true;
 }

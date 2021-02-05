@@ -31,7 +31,6 @@ public:
 
 private:
     static JavaVM *_psJavaVM;
-    static jobject _context;
     static std::function<void()> classloaderCallback;
 
     static JNIEnv *cacheEnv(JavaVM *jvm);
