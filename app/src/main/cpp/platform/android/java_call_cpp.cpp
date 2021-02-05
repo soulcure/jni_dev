@@ -16,8 +16,6 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     JniHelper::setJavaVM(vm);
     LOGD("JNI_OnLoad be called...");
 
-
-
     JNIEnv *pEnv = nullptr;
     //获取环境
     jint ret = vm->GetEnv((void **) &pEnv, JNI_VERSION_1_6);
@@ -29,7 +27,8 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv*  env, jobject thiz, jobject context, jobject assetManager) {
+JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv*  env, jclass clazz,
+        jobject context, jobject assetManager) {
     JniHelper::setClassLoaderFrom(context);
 }
 
@@ -43,10 +42,6 @@ Java_com_coocaa_socket_UtilJni_tcpFromJNI(JNIEnv *env, jclass clazz, jstring ip,
     const char *p_ip = env->GetStringUTFChars(ip, JNI_FALSE);
 
     sdk_manager::Get().create_tcp_client(p_ip, port);
-    /*const char *buf = "hello";
-    int len = 5;
-    LOGD("ConReceivePdu buffer size:[%d]", len);
-    JniHelper::ConReceivePdu(buf, len);*/
 
     env->ReleaseStringUTFChars(ip, p_ip);
 }

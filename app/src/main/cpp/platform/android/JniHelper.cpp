@@ -1,12 +1,9 @@
 #include "JniHelper.h"
 #include <android/log.h>
-#include <string.h>
+#include <string>
 #include <pthread.h>
+#include "../../log/log_util.h"
 
-
-#define  LOG_TAG    "JniHelper"
-#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
 #define  CLASS_NAME "com/coocaa/socket/UtilJni"
 
@@ -18,13 +15,10 @@ jclass _getClassID(const char *className) {
     }
 
     JNIEnv *env = JniHelper::getEnv();
-
     jstring _jstrClassName = env->NewStringUTF(className);
-
     jclass _clazz = (jclass) env->CallObjectMethod(JniHelper::classloader,
                                                    JniHelper::loadclassMethod_methodID,
                                                    _jstrClassName);
-
     if (nullptr == _clazz) {
         LOGE("Classloader failed to find class of %s", className);
         env->ExceptionClear();
@@ -63,13 +57,13 @@ jobject JniHelper::_activity = nullptr;
 
 JavaVM *JniHelper::getJavaVM() {
     pthread_t thisthread = pthread_self();
-    //LOGD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
+    LOGD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
     return _psJavaVM;
 }
 
 void JniHelper::setJavaVM(JavaVM *javaVM) {
     pthread_t thisthread = pthread_self();
-    //LOGD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
+    LOGD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
     _psJavaVM = javaVM;
 
     pthread_key_create(&g_key, _detachCurrentThread);
