@@ -4,7 +4,6 @@
 #include <jni.h>
 #include <string>
 #include <vector>
-#include <unordered_map>
 #include <functional>
 
 
@@ -33,13 +32,9 @@ public:
 private:
     static JavaVM *_psJavaVM;
     static jobject _context;
-    typedef std::unordered_map<JNIEnv *, std::vector<jobject>> LocalRefMapType;
-
     static std::function<void()> classloaderCallback;
 
     static JNIEnv *cacheEnv(JavaVM *jvm);
-
-    static jobject getContext();
 
     static jclass _getClassID(const char *className);
 
@@ -56,15 +51,11 @@ private:
                               const char *methodName,
                               const char *paramCode);
 
-    static bool getMethodInfo_DefaultClassLoader(JniMethodInfo &methodInfo,
+    static bool defaultClassLoader(JniMethodInfo &methodInfo,
                                                  const char *className,
                                                  const char *methodName,
                                                  const char *paramCode);
 
-    static void deleteLocalRefs(JNIEnv *env, LocalRefMapType &localRefs);
-
-    static void reportError(const std::string &className, const std::string &methodName,
-                            const std::string &signature);
 };
 
 

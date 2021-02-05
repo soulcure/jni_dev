@@ -77,16 +77,13 @@ JNIEnv *JniHelper::getEnv() {
     return _env;
 }
 
-jobject JniHelper::getContext() {
-    return _context;
-}
 
 bool JniHelper::setClassLoaderFrom(jobject context) {
     JniMethodInfo class_context;
-    if (!JniHelper::getMethodInfo_DefaultClassLoader(class_context,
-                                                     "android/content/Context",
-                                                     "getClassLoader",
-                                                     "()Ljava/lang/ClassLoader;")) {
+    if (!JniHelper::defaultClassLoader(class_context,
+                                       "android/content/Context",
+                                       "getClassLoader",
+                                       "()Ljava/lang/ClassLoader;")) {
         LOGE("DefaultClassLoader android/content/Context Fail");
         return false;
     }
@@ -99,10 +96,10 @@ bool JniHelper::setClassLoaderFrom(jobject context) {
     }
 
     JniMethodInfo class_loader;
-    if (!JniHelper::getMethodInfo_DefaultClassLoader(class_loader,
-                                                     "java/lang/ClassLoader",
-                                                     "loadClass",
-                                                     "(Ljava/lang/String;)Ljava/lang/Class;")) {
+    if (!JniHelper::defaultClassLoader(class_loader,
+                                       "java/lang/ClassLoader",
+                                       "loadClass",
+                                       "(Ljava/lang/String;)Ljava/lang/Class;")) {
         LOGE("DefaultClassLoader java/lang/ClassLoader Fail");
         return false;
     }
@@ -111,9 +108,11 @@ bool JniHelper::setClassLoaderFrom(jobject context) {
     JniHelper::_methodID = class_loader.methodID;
     JniHelper::_context = JniHelper::getEnv()->NewGlobalRef(context);
     if (JniHelper::classloaderCallback != nullptr) {
+        LOGD("DefaultClassLoader classloaderCallback");
         JniHelper::classloaderCallback();
     }
 
+    LOGD("DefaultClassLoader success");
     return true;
 }
 
@@ -153,10 +152,10 @@ bool JniHelper::getStaticMethodInfo(JniMethodInfo &methodInfo,
     return true;
 }
 
-bool JniHelper::getMethodInfo_DefaultClassLoader(JniMethodInfo &methodInfo,
-                                                 const char *className,
-                                                 const char *methodName,
-                                                 const char *paramCode) {
+bool JniHelper::defaultClassLoader(JniMethodInfo &methodInfo,
+                                   const char *className,
+                                   const char *methodName,
+                                   const char *paramCode) {
     if ((nullptr == className) ||
         (nullptr == methodName) ||
         (nullptr == paramCode)) {
@@ -226,42 +225,24 @@ bool JniHelper::getMethodInfo(JniMethodInfo &methodInfo,
 }
 
 
-void JniHelper::deleteLocalRefs(JNIEnv *env, LocalRefMapType &localRefs) {
-    if (!env) {
-        return;
-    }
-
-    for (const auto &ref : localRefs[env]) {
-        env->DeleteLocalRef(ref);
-    }
-    localRefs[env].clear();
-}
-
-void JniHelper::reportError(const std::string &className, const std::string &methodName,
-                            const std::string &signature) {
-    LOGE("Failed to find static java method. Class name: %s, method name: %s, signature: %s ",
-         className.c_str(), methodName.c_str(), signature.c_str());
-}
-
-
 jclass JniHelper::_getClassID(const char *className) {
     if (nullptr == className) {
         return nullptr;
     }
 
     JNIEnv *env = JniHelper::getEnv();
-    jstring _jClassName = env->NewStringUTF(className);
-    auto _clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
-                                                 JniHelper::_methodID,
-                                                 _jClassName);
-    if (nullptr == _clazz) {
+    jstring jClassName = env->NewStringUTF(className);
+    auto clazz = (jclass) env->CallObjectMethod(JniHelper::_classLoader,
+                                                JniHelper::_methodID,
+                                                jClassName);
+    if (clazz == nullptr) {
         LOGE("Classloader failed to find class of %s", className);
         env->ExceptionClear();
     }
 
-    env->DeleteLocalRef(_jClassName);
+    env->DeleteLocalRef(jClassName);
 
-    return _clazz;
+    return clazz;
 }
 
 void JniHelper::_detachCurrentThread(void *p) {
