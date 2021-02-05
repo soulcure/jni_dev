@@ -1,5 +1,7 @@
 package com.coocaa.socket;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 public class UtilJni {
@@ -12,6 +14,7 @@ public class UtilJni {
 
     public static native void sendBytes(byte[] bytes);
 
+    public static native void nativeSetContext(final Context pContext, final AssetManager pAssetManager);
 
     //*************以下为 C++调用java接口******************//
     public static void onReceivePdu(byte[] buf) {

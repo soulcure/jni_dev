@@ -1,5 +1,6 @@
 package com.coocaa.socket;
 
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_connect).setOnClickListener(this);
         findViewById(R.id.btn_string).setOnClickListener(this);
         findViewById(R.id.btn_bytes).setOnClickListener(this);
+
+        AssetManager am = getResources().getAssets();
+        UtilJni.nativeSetContext(this,am);
     }
 
 

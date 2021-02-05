@@ -23,7 +23,7 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         log/log_util.cpp
         platform/android/java_call_cpp.cpp
-        platform/android/jni_helper.cpp
+        platform/android/JniHelper.cpp
         sdk_manager.cpp
 
         net/pdu_util.cpp

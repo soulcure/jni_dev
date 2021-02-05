@@ -15,6 +15,10 @@
 //声明的Native方法时非静态方法时，对应参数是jobject <对象>
 extern "C"
 {
+JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved);
+
+JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv*  env, jobject thiz, jobject context, jobject assetManager);
+
 
 JNIEXPORT jstring JNICALL
 Java_com_coocaa_socket_UtilJni_stringFromJNI(JNIEnv *env, jclass clazz);
