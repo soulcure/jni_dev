@@ -38,8 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_string).setOnClickListener(this);
         findViewById(R.id.btn_bytes).setOnClickListener(this);
 
-        AssetManager am = getResources().getAssets();
-        UtilJni.nativeSetContext(this,am);
+        UtilJni.nativeSetContext(this);
     }
 
 

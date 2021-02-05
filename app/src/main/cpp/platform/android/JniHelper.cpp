@@ -112,19 +112,18 @@ jobject JniHelper::getActivity() {
     return _activity;
 }
 
-bool JniHelper::setClassLoaderFrom(jobject activityinstance) {
-    JniMethodInfo _getclassloaderMethod;
-    if (!JniHelper::getMethodInfo_DefaultClassLoader(_getclassloaderMethod,
+bool JniHelper::setClassLoaderFrom(jobject content) {
+    JniMethodInfo jniMethodInfo;
+    if (!JniHelper::getMethodInfo_DefaultClassLoader(jniMethodInfo,
                                                      "android/content/Context",
                                                      "getClassLoader",
                                                      "()Ljava/lang/ClassLoader;")) {
         return false;
     }
 
-    jobject _c = JniHelper::getEnv()->CallObjectMethod(activityinstance,
-                                                       _getclassloaderMethod.methodID);
+    jobject obj = JniHelper::getEnv()->CallObjectMethod(content, jniMethodInfo.methodID);
 
-    if (nullptr == _c) {
+    if (obj == nullptr) {
         return false;
     }
 
@@ -136,9 +135,9 @@ bool JniHelper::setClassLoaderFrom(jobject activityinstance) {
         return false;
     }
 
-    JniHelper::classloader = JniHelper::getEnv()->NewGlobalRef(_c);
+    JniHelper::classloader = JniHelper::getEnv()->NewGlobalRef(obj);
     JniHelper::loadclassMethod_methodID = _m.methodID;
-    JniHelper::_activity = JniHelper::getEnv()->NewGlobalRef(activityinstance);
+    JniHelper::_activity = JniHelper::getEnv()->NewGlobalRef(content);
     if (JniHelper::classloaderCallback != nullptr) {
         JniHelper::classloaderCallback();
     }

@@ -14,7 +14,7 @@ public class UtilJni {
 
     public static native void sendBytes(byte[] bytes);
 
-    public static native void nativeSetContext(final Context pContext, final AssetManager pAssetManager);
+    public static native void nativeSetContext(final Context context);
 
     //*************以下为 C++调用java接口******************//
     public static void onReceivePdu(byte[] buf) {

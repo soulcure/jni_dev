@@ -28,7 +28,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
 }
 
 JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv*  env, jclass clazz,
-        jobject context, jobject assetManager) {
+        jobject context) {
     JniHelper::setClassLoaderFrom(context);
 }
 
