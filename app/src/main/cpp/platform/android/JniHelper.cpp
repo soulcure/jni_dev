@@ -63,7 +63,7 @@ JNIEnv *JniHelper::cacheEnv(JavaVM *jvm) {
 
         case JNI_EVERSION :
             // Cannot recover from this error
-            LOGE("JNI interface version 1.4 not supported");
+            LOGE("JNI interface version 1.6 not supported");
         default :
             LOGE("Failed to get the environment using GetEnv()");
             return nullptr;
@@ -71,7 +71,7 @@ JNIEnv *JniHelper::cacheEnv(JavaVM *jvm) {
 }
 
 JNIEnv *JniHelper::getEnv() {
-    JNIEnv *_env = (JNIEnv *) pthread_getspecific(g_key);
+    auto *_env = (JNIEnv *) pthread_getspecific(g_key);
     if (_env == nullptr)
         _env = JniHelper::cacheEnv(_psJavaVM);
     return _env;
@@ -81,32 +81,35 @@ jobject JniHelper::getContext() {
     return _context;
 }
 
-bool JniHelper::setClassLoaderFrom(jobject content) {
-    JniMethodInfo jniMethodInfo;
-    if (!JniHelper::getMethodInfo_DefaultClassLoader(jniMethodInfo,
+bool JniHelper::setClassLoaderFrom(jobject context) {
+    JniMethodInfo class_context;
+    if (!JniHelper::getMethodInfo_DefaultClassLoader(class_context,
                                                      "android/content/Context",
                                                      "getClassLoader",
                                                      "()Ljava/lang/ClassLoader;")) {
+        LOGE("DefaultClassLoader android/content/Context Fail");
         return false;
     }
 
-    jobject obj = JniHelper::getEnv()->CallObjectMethod(content, jniMethodInfo.methodID);
+    jobject obj = JniHelper::getEnv()->CallObjectMethod(context, class_context.methodID);
 
     if (obj == nullptr) {
+        LOGE("DefaultClassLoader android/content/Context object null");
         return false;
     }
 
-    JniMethodInfo _m;
-    if (!JniHelper::getMethodInfo_DefaultClassLoader(_m,
+    JniMethodInfo class_loader;
+    if (!JniHelper::getMethodInfo_DefaultClassLoader(class_loader,
                                                      "java/lang/ClassLoader",
                                                      "loadClass",
                                                      "(Ljava/lang/String;)Ljava/lang/Class;")) {
+        LOGE("DefaultClassLoader java/lang/ClassLoader Fail");
         return false;
     }
 
     JniHelper::_classLoader = JniHelper::getEnv()->NewGlobalRef(obj);
-    JniHelper::_methodID = _m.methodID;
-    JniHelper::_context = JniHelper::getEnv()->NewGlobalRef(content);
+    JniHelper::_methodID = class_loader.methodID;
+    JniHelper::_context = JniHelper::getEnv()->NewGlobalRef(context);
     if (JniHelper::classloaderCallback != nullptr) {
         JniHelper::classloaderCallback();
     }

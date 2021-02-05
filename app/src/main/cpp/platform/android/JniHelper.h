@@ -1,5 +1,5 @@
-#ifndef __ANDROID_JNI_HELPER_H__
-#define __ANDROID_JNI_HELPER_H__
+#ifndef _JNI_HELPER_H_
+#define _JNI_HELPER_H_
 
 #include <jni.h>
 #include <string>
@@ -68,4 +68,4 @@ private:
 };
 
 
-#endif // __ANDROID_JNI_HELPER_H__
+#endif // _JNI_HELPER_H_
