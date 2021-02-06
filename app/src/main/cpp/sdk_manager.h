@@ -13,6 +13,8 @@ class sdk_manager {
 public:
     sdk_manager(const sdk_manager &) = delete;
 
+    sdk_manager operator=(const sdk_manager &) = delete;
+
     void create_tcp_client(const char *ip, int port);
 
     void send_message(int length, const char *message);
