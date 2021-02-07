@@ -46,7 +46,6 @@ void CSocketBase::SetLinger(int sockFd) {
 int CSocketBase::CreateSocket(int type) {
     int nSocket = socket(AF_INET, type, 0);
     if (nSocket < 0) {
-        m_nSocketErr = SOCKET_INIT_ERROR;
         return -1;
     }
     return nSocket;
@@ -60,12 +59,8 @@ bool CSocketBase::BindSocket(int sock, const char *ip, int port) {
 
     socket_address.sin_port = htons(port);
 
-    if (::bind(sock, (struct sockaddr *) &socket_address, sizeof(socket_address)) < 0) {
-        m_nSocketErr = SOCKET_BIND_ERROR;
-        return false;
-    }
+    return ::bind(sock, (struct sockaddr *) &socket_address, sizeof(socket_address)) >= 0;
 
-    return true;
 }
 
 bool CSocketBase::ConnectSocket(int sock, const char *ip, int port) {
@@ -76,7 +71,6 @@ bool CSocketBase::ConnectSocket(int sock, const char *ip, int port) {
     socket_address.sin_port = htons(port);
 
     if (::connect(sock, (struct sockaddr *) &socket_address, sizeof(socket_address)) < 0) {
-        m_nSocketErr = SOCKET_CONNECT_ERROR;
         printf("connect failed[%d],[%s]\n", errno, strerror(errno));
         return false;
     }
@@ -84,27 +78,22 @@ bool CSocketBase::ConnectSocket(int sock, const char *ip, int port) {
 }
 
 bool CSocketBase::ListenSocket(int sock, int conn_num) {
-    if (::listen(sock, conn_num) < 0) {
-        m_nSocketErr = SOCKET_LISTEN_ERROR;
-        return false;
-    }
-    return true;
+    return ::listen(sock, conn_num) >= 0;
 }
 
 int CSocketBase::AcceptSocket(int sock, sockaddr_in &remote_address) {
     auto size = (socklen_t) sizeof(remote_address);
     int nConnSocket = ::accept(sock, (struct sockaddr *) &remote_address, &size);
     if (nConnSocket < 0) {
-        m_nSocketErr = SOCKET_ACCEPT_ERROR;
+        return -1;
     }
-
     return nConnSocket;
 }
 
 int CSocketBase::SendMsg(int sockId, char *buf, int buf_len) {
     int byte_send = ::send(sockId, buf, buf_len, 0);
     if (byte_send < 0) {
-        m_nSocketErr = SOCKET_TRANSMIT_ERROR;
+        return -1;
     }
 
     return byte_send;
@@ -119,7 +108,7 @@ int CSocketBase::SendToMsg(int sock, char *ip, int port, char *buf, int buf_len)
     int byte_send = ::sendto(sock, buf, buf_len, 0, (struct sockaddr *) &socket_address,
                              sizeof(socket_address));
     if (byte_send < 0) {
-        m_nSocketErr = SOCKET_TRANSMIT_ERROR;
+        return -1;
     }
     return byte_send;
 }
