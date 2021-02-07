@@ -1,21 +1,15 @@
-#include "../../../log/log_util.h"
 #include "net_base.h"
-#include "tcp_server.h"
+#include "socket_base.h"
 #include "poll.h"
-#include <errno.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <cstring>
+#include "../../../log/log_util.h"
 
-extern NetBase *_obj;
+extern NetBase *ptrNetBase;
 
 using namespace std;
 
 
 void SetObj(NetBase *pObj) {
-    _obj = pObj;
+    ptrNetBase = pObj;
 }
 
 void SignalHandle() {
@@ -23,11 +17,10 @@ void SignalHandle() {
 }
 
 
-void
-read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node, struct epoll_event ev) {
-    //char buf[1024]={0};
-    char sbuf[1024] = {0};
-    char *buf = sbuf;
+void read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
+             struct epoll_event ev) {
+    char subBuf[1024] = {0};
+    char *buf = subBuf;
 
     int val = read(node->fd, buf, 1024);
 
@@ -36,23 +29,23 @@ read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node, stru
         LOGD(" received data -> %s", buf);
 
         PDUBase pdu;
-        std::unordered_map<int, ConnectBuffer>::iterator it = obj->recv_buffers.find(node->fd);
+        auto it = obj->recv_buffers.find(node->fd);
 
         if (obj->recv_buffers.end() != it) {
             if (it->second.length >= 0) {
-                std::shared_ptr<char> mergebuf(new char[it->second.length + val + 1]);
-                memcpy(mergebuf.get(), it->second.body.get(), it->second.length);
-                memcpy(mergebuf.get() + it->second.length, buf, val);
-                buf = mergebuf.get();
+                std::shared_ptr<char> mergeBuf(new char[it->second.length + val + 1]);
+                memcpy(mergeBuf.get(), it->second.body.get(), it->second.length);
+                memcpy(mergeBuf.get() + it->second.length, buf, val);
+                buf = mergeBuf.get();
                 val += it->second.length;
                 it->second.length = val;
-                it->second.body = mergebuf;
+                it->second.body = mergeBuf;
             }
         } else {
-            std::shared_ptr<char> newbuf(new char[val + 1]);
-            memcpy(newbuf.get(), buf, val);
+            std::shared_ptr<char> newBuf(new char[val + 1]);
+            memcpy(newBuf.get(), buf, val);
             ConnectBuffer connect_buffer;
-            connect_buffer.body = newbuf;
+            connect_buffer.body = newBuf;
             connect_buffer.length = val;
             obj->recv_buffers.insert({node->fd, connect_buffer});
             it = obj->recv_buffers.find(node->fd);
@@ -75,14 +68,6 @@ read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node, stru
                 buf = it->second.body.get();
             }
         }
-/*
-                printf("DataPackage num :%d\n", vec.size());
-                vector<DataPackage>::iterator iter = vec.begin();
-                for (; iter != vec.end(); ++iter)
-        {
-                        obj->OnRecv(node->fd, &(*iter) );
-                }
-        */
     }
 }
 
@@ -101,23 +86,23 @@ void close_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node
 void accept_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
                struct epoll_event ev) {
     // accept the connection
-    struct sockaddr_in clt_addr;
-    socklen_t clt_len = sizeof(clt_addr);
-    int listenfd = accept(node->fd, (struct sockaddr *) &clt_addr, &clt_len);
-    fcntl(listenfd, F_SETFL, O_NONBLOCK);
-    fprintf(stderr, "got the socket %d\n", listenfd);
+    struct sockaddr_in socket_address{};
+    socklen_t clt_len = sizeof(socket_address);
+    int listenFd = accept(node->fd, (struct sockaddr *) &socket_address, &clt_len);
+    fcntl(listenFd, F_SETFL, O_NONBLOCK);
+    LOGD("got the socket: [%d]", listenFd);
     // set flags to check
     uint32_t flags = EPOLLIN | EPOLLRDHUP | EPOLLHUP;
     poll_event_element_t *p;
     // add file descriptor to poll event
-    poll_event_add(poll_event, listenfd, flags, &p);
+    poll_event_add(poll_event, listenFd, flags, &p);
     // set function callbacks
     p->read_callback = read_cb;
     p->close_callback = close_cb;
 
-    short port = ntohs(clt_addr.sin_port);
+    short port = ntohs(socket_address.sin_port);
     char ip[20] = {0};
-    inet_ntop(AF_INET, (void *) &(clt_addr.sin_addr.s_addr), ip, 16);
+    inet_ntop(AF_INET, (void *) &(socket_address.sin_addr.s_addr), ip, 16);
 
     obj->OnConn(ip, port);
 }
@@ -143,10 +128,8 @@ int timeout_cb(NetBase *obj, poll_event_t *poll_event) {
 
 NetBase::NetBase() {
     listen_num = 1;
-    port = default_port;
-    ip = "127.0.0.1";
-    //memset(m_sIp, 0, sizeof(m_sIp));
-    //memcpy(m_sIp, "127.0.0.1", sizeof(m_sIp));
+    m_ip = "127.0.0.1";
+    m_port = default_port;
 }
 
 NetBase::~NetBase() {
@@ -155,27 +138,27 @@ NetBase::~NetBase() {
 
 int NetBase::ProcessListenSock() {
     SignalHandle();
-    int sockid = m_Sock.CreateSocket();
-    if (sockid > 0) {
+    int sockId = m_Sock.CreateSocket();
+    if (sockId > 0) {
         SetObj(this);
-        //ÓÅÑÅœáÊø
-        m_Sock.SetLinger(sockid);
+        //SOCKET在CLOSE时候是否等待缓冲区发送完成
+        m_Sock.SetLinger(sockId);
 
-        //·Ç×èÈû
-        m_Sock.SetNonBlock(sockid);
+        //非阻塞模式下调用accept()函数立即返回
+        m_Sock.SetNonBlock(sockId);
 
-        //¶Ë¿ÚÖØÓÃ
-        m_Sock.SetReuse(sockid);
+        //SO_REUSEADDR是让端口释放后立即就可以被再次使用
+        m_Sock.SetReuse(sockId);
 
-        m_Sock.BindSocket(sockid, (char *) ip.c_str(), port);
+        m_Sock.BindSocket(sockId, m_ip.c_str(), m_port);
 
-        m_Sock.ListenSocket(sockid, listen_num);
+        m_Sock.ListenSocket(sockId, listen_num);
     }
 
-    return sockid;
+    return sockId;
 }
 
-void NetBase::ProcessEpoll(int sock) {
+void NetBase::ProcessEpoll(int sockId) {
     poll_event_t *pPe = poll_event_new(1000);
     if (!pPe) {
         LOGD("pPe=null");
@@ -185,7 +168,7 @@ void NetBase::ProcessEpoll(int sock) {
     pPe->timeout_callback = timeout_cb;
     poll_event_element_t *p;
     // add sock to poll event
-    poll_event_add(pPe, sock, EPOLLIN, &p);
+    poll_event_add(pPe, sockId, EPOLLIN, &p);
     // set callbacks
     //p->read_callback = read_cb;
     p->accept_callback = accept_cb;
@@ -199,12 +182,12 @@ void NetBase::ProcessEpoll(int sock) {
 
 void NetBase::Init() {}
 
-void NetBase::StartServer(std::string _ip, short _port) {
-    ip = _ip;
-    port = _port;
+void NetBase::StartServer(const std::string &ip, int port) {
+    m_ip = ip;
+    m_port = port;
     Init();
 
-    LOGD("%s %d", _ip.c_str(), (int) _port);
+    LOGD("StartServer ip:[%s], port:[%d]", ip.c_str(), port);
     int iSock = ProcessListenSock();
     if (iSock < 1) {
         return;
@@ -217,41 +200,36 @@ void NetBase::OnConn(const char *ip, short port) {
 
 }
 
-void NetBase::OnDisconn(int sockid) {
+void NetBase::OnDisconn(int sockId) {
 }
 
-/*
-void NetBase::OnRecv(int sockid, PDUBase &_pack)
-{
 
-}
-*/
-
-bool NetBase::Send(int _fd, PDUBase &_data) {
-    printf("\nNetBase::Send\n");
+bool NetBase::Send(int sockId, PDUBase &_data) {
+    LOGD("NetBase::Send...");
     std::lock_guard<std::mutex> lk1(send_mutex);
-    char *buf = NULL;
-    //int len =  m_parse.PackageData(_data, buf);
+    char *buf = nullptr;
     int len = OnPduPack(_data, buf);
     if (len > 0) {
-        int ret = write(_fd, buf, len);
+        int ret = write(sockId, buf, len);
         if (ret == -1) {
-            printf("errno=%d\n", errno);
-            char *mesg = strerror(errno);
-            printf("Mesg:%s\n", mesg);
+            LOGD("errno:[%d]", errno);
+            char *msg = strerror(errno);
+            LOGD("Message:[%s]", msg);
         }
 
         free(buf);  //释放内存
+        return true;
     }
+    return false;
 }
 
-bool NetBase::Send(int _fd, char *buff, int len) {
+bool NetBase::Send(int sockId, char *buff, int len) {
     if (len > 0) {
-        int ret = write(_fd, buff, len);
+        int ret = write(sockId, buff, len);
         if (ret == -1) {
-            printf("errno=%d\n", errno);
-            char *mesg = strerror(errno);
-            printf("Mesg:%s\n", mesg);
+            LOGD("errno:[%d]", errno);
+            char *msg = strerror(errno);
+            LOGD("Message:[%s]", msg);
             return false;
         }
         return true;

@@ -3,15 +3,13 @@
 
 #include "../../../log/log_util.h"
 #include "../../pdu_base.h"
-#include "tcp_server.h"
 #include "../../pdu_util.h"
-#include <string>
+#include "socket_base.h"
 
+#include <string>
 #include <unordered_map>
 #include <memory>   //shared_ptr
 #include <mutex>
-
-typedef unsigned char BYTE;
 
 #define default_port 8080
 
@@ -41,7 +39,7 @@ public:
     * @析构函数
     *
     */
-    virtual    ~NetBase();
+    virtual ~NetBase();
 
     /***********************************************************
     * @允许个性化的初始化处理
@@ -53,8 +51,7 @@ public:
     * @接收数据回调处理函数
     *
     */
-//	virtual void OnRecv(int sockid, vector<DataPackage>::iterator iter);
-    virtual void OnRecv(int sockid, PDUBase &_pack) = 0;
+    virtual void OnRecv(int sockId, PDUBase &_pack) = 0;
 
     /***********************************************************
     * @接收请求时回调处理函数
@@ -66,7 +63,7 @@ public:
     * @接收请求时回调处理函数
     *
     */
-    virtual void OnDisconn(int sockid);
+    virtual void OnDisconn(int sockId);
 
     /***********************************************************
     * @Epoll超时回调处理函数
@@ -87,22 +84,22 @@ public:
     *
     * @param
     */
-    void ProcessEpoll(int sock);
+    void ProcessEpoll(int sockId);
 
     /***********************************************************
     * @ 服务器启动
     *
     * @param
     */
-    void StartServer(std::string _ip, short _port = default_port);
+    void StartServer(const std::string& ip, int port = default_port);
 
     /*
      *发送
      *封装了封单包的方法。
      */
-    bool Send(int _fd, PDUBase &_data);
+    bool Send(int fd, PDUBase &data);
 
-    bool Send(int _fd, char *buff, int len);
+    bool Send(int fd, char *buff, int len);
 
 
     /**********************************************************
@@ -115,26 +112,13 @@ public:
     std::unordered_map<int, ConnectBuffer> recv_buffers;
 
 protected:
-    TcpServer m_Sock;
+    CSocketBase m_Sock;
 
     int listen_num;        //监听的SOCKET数量
-    //char  m_sIp[16];		//服务端监听IP
-    std::string ip;
-    int port;            //服务端监听端口
-
-
-
+    std::string m_ip;
+    int m_port;            //服务端监听端口
 
     std::mutex send_mutex;
-
-    char tcpbuffer[TCP_MAX_BUFF];
-
-    int position;//like position in java ByteBuffer.
-
-
-
-public:
-//	DataPackage_Parse m_parse;     	//TCP拆包解析
 };
 
 #endif  //NET_BASE_H

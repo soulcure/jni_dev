@@ -30,7 +30,7 @@ add_library( # Sets the name of the library.
         net/pdu_base.cpp
         net/tcp/client/tcp_client.cpp
 
-        net/tcp/server/tcp_server.cpp
+        net/tcp/server/socket_base.cpp
         net/tcp/server/net_base.cpp
         net/tcp/server/poll.cpp
         )

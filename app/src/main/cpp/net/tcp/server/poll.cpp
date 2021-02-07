@@ -1,16 +1,16 @@
-#include "poll.h"
-//#include "log_util.h"
-#include <stdlib.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <sys/socket.h>
-#include <string.h>
-#include<unistd.h>
+#include <unistd.h>
 
- static  poll_event_element_t * _nodes;
-NetBase* _obj = NULL;
-//poll_event_element functions
+#include "poll.h"
+#include "../../../log/log_util.h"
+
+
+static poll_event_element_t *sp_nodes;
+NetBase *ptrNetBase = nullptr;
+
 /**
  * Function to allocate a new poll event element
  * @param fd the file descriptor to watch
@@ -18,12 +18,10 @@ NetBase* _obj = NULL;
  * @returns poll event element on success
  * @returns NULL on failure
  */
-poll_event_element_t * poll_event_element_new(int fd, uint32_t events)
-{
-//    LOGT("Creating a new poll event element" );
-    poll_event_element_t *elem = ( poll_event_element_t *)calloc(1, poll_event_element_s);
-    if (elem)
-    {
+poll_event_element_t *poll_event_element_new(int fd, uint32_t events) {
+    LOGD("Creating a new poll event element");
+    auto *elem = (poll_event_element_t *) calloc(1, poll_event_element_s);
+    if (elem) {
         elem->fd = fd;
         elem->events = events;
     }
@@ -34,9 +32,8 @@ poll_event_element_t * poll_event_element_new(int fd, uint32_t events)
  * Function to delete a poll event element
  * @param elem poll event element
  */
-void poll_event_element_delete(poll_event_element_t * elem)
-{
-//    LOGT("Deleting a poll event element");
+void poll_event_element_delete(poll_event_element_t *elem) {
+    LOGD("Deleting a poll event element");
     free(elem);
 }
 
@@ -47,19 +44,17 @@ void poll_event_element_delete(poll_event_element_t * elem)
  * @retunrs NULL on failure
  * @retunrs poll event object on sucess
  */
-poll_event_t * poll_event_new(int timeout)
-{
-	_nodes=NULL;
-    poll_event_t * poll_event = ( poll_event_t *)calloc(1, poll_event_s);
-    if (!poll_event)
-    {
-//        LOGT("calloc failed at poll_event");
+poll_event_t *poll_event_new(int timeout) {
+    sp_nodes = NULL;
+    poll_event_t *poll_event = (poll_event_t *) calloc(1, poll_event_s);
+    if (!poll_event) {
+        LOGD("calloc failed at poll_event");
         return NULL; // No Memory
     }
-    
+
     poll_event->timeout = timeout;
     poll_event->epoll_fd = epoll_create(MAX_EVENTS);
-//    LOGT("Created a new poll event");
+    LOGD("Created a new poll event");
     return poll_event;
 }
 
@@ -67,9 +62,8 @@ poll_event_t * poll_event_new(int timeout)
  * Function to delete poll event object
  * @param poll_event poll event object to be deleted
  */
-void poll_event_delete(poll_event_t* poll_event)
-{
-//    LOGT("deleting a poll_event");
+void poll_event_delete(poll_event_t *poll_event) {
+    LOGD("deleting a poll_event");
     //hash_table_delete(poll_event->table);
     close(poll_event->epoll_fd);
     free(poll_event);
@@ -83,28 +77,25 @@ void poll_event_delete(poll_event_t* poll_event)
  * @param flags events flags from epoll
  * @param poll_element a poll event element pointer which is filled in by the function, set all function callbacks and cb_flags in this
  */
-int poll_event_add(poll_event_t* poll_event, int fd, uint32_t flags, poll_event_element_t **poll_element)
-{
-    poll_event_element_t *elem = NULL;
-    HASH_FIND_INT(_nodes,&fd,elem);
-    if (elem)
-    {
-        //LOG("fd (%d) already added updating flags", fd);
+int poll_event_add(poll_event_t *poll_event, int fd, uint32_t flags,
+                   poll_event_element_t **poll_element) {
+    poll_event_element_t *elem = nullptr;
+    HASH_FIND_INT(sp_nodes, &fd, elem);
+    if (elem) {
+        LOGD("fd (%d) already added updating flags", fd);
         elem->events |= flags;
-        struct epoll_event ev;
+        struct epoll_event ev{};
         memset(&ev, 0, sizeof(struct epoll_event));
         ev.data.fd = fd;
         ev.events = elem->events;
         *poll_element = elem;
         return epoll_ctl(poll_event->epoll_fd, EPOLL_CTL_MOD, fd, &ev);
-    }
-    else
-    {
+    } else {
         elem = poll_event_element_new(fd, flags);
-       
-       HASH_ADD_INT(_nodes,fd,elem);
 
-        struct epoll_event ev;
+        HASH_ADD_INT(sp_nodes, fd, elem);
+
+        struct epoll_event ev{};
         memset(&ev, 0, sizeof(struct epoll_event));
         ev.data.fd = fd;
         ev.events = elem->events;
@@ -118,15 +109,13 @@ int poll_event_add(poll_event_t* poll_event, int fd, uint32_t flags, poll_event_
  * @param poll_event poll event object from which fd has to be removed
  * @param fd file descriptor which has to be removed
  */
-int poll_event_remove(poll_event_t* poll_event, int fd)
-{
-    poll_event_element_t *elem = NULL;
-    HASH_FIND_INT(_nodes,&fd,elem);
-    if(elem)
-    {
-	 		HASH_DEL(_nodes,elem);
-   	 close(fd);
-    	epoll_ctl(poll_event->epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+int poll_event_remove(poll_event_t *poll_event, int fd) {
+    poll_event_element_t *elem = nullptr;
+    HASH_FIND_INT(sp_nodes, &fd, elem);
+    if (elem) {
+        HASH_DEL(sp_nodes, elem);
+        close(fd);
+        epoll_ctl(poll_event->epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
     }
     return 0;
 }
@@ -136,82 +125,68 @@ int poll_event_remove(poll_event_t* poll_event, int fd)
  * @note only process events once if you need to use an event loop use poll_event_loop
  * @param poll_event poll event object to be processed
  */
-int poll_event_process(poll_event_t * poll_event)
-{
+int poll_event_process(poll_event_t *poll_event) {
     struct epoll_event events[MAX_EVENTS];
-//    LOGT("May the source be with you!!");
+    LOGD("May the source be with you!!");
     int fds = epoll_wait(poll_event->epoll_fd, events, MAX_EVENTS, poll_event->timeout);
-    if (fds == 0)
-    {
-//        LOGT("event loop timed out");
-        if (poll_event->timeout_callback)
-        {
-            if (poll_event->timeout_callback(_obj, poll_event))
-            {
+    if (fds == 0) {
+        LOGD("event loop timed out");
+        if (poll_event->timeout_callback) {
+            if (poll_event->timeout_callback(ptrNetBase, poll_event)) {
                 return -1;
             }
         }
     }
     int i = 0;
-    for(;i<fds;i++)
-    {
-        poll_event_element_t * value = NULL;
-        	HASH_FIND_INT(_nodes,&events[i].data.fd,value);
-        if (value && (_obj!=NULL)  )
-        {
-            //LOG("started processing for event id(%d) and sock(%d)", i, events[i].data.fd);
+    for (; i < fds; i++) {
+        poll_event_element_t *value = nullptr;
+        HASH_FIND_INT(sp_nodes, &events[i].data.fd, value);
+        if (value && (ptrNetBase != nullptr)) {
+            LOGD("started processing for event id(%d) and sock(%d)", i, events[i].data.fd);
             // when data avaliable for read or urgent flag is set
-            if ((events[i].events & EPOLLIN) || (events[i].events & EPOLLPRI))
-            {
-                if (events[i].events & EPOLLIN)
-                {
-                    //LOG("found EPOLLIN for event id(%d) and sock(%d)", i, events[i].data.fd);
+            if ((events[i].events & EPOLLIN) || (events[i].events & EPOLLPRI)) {
+                if (events[i].events & EPOLLIN) {
+                    LOGD("found EPOLLIN for event id(%d) and sock(%d)", i, events[i].data.fd);
                     value->cur_event &= EPOLLIN;
-                }
-                else
-                {
-                    //LOG("found EPOLLPRI for event id(%d) and sock(%d)", i, events[i].data.fd);
+                } else {
+                    LOGD("found EPOLLPRI for event id(%d) and sock(%d)", i, events[i].data.fd);
                     value->cur_event &= EPOLLPRI;
                 }
                 /// connect or accept callbacks also go through EPOLLIN
                 /// accept callback if flag set
                 if ((value->cb_flags & ACCEPT_CB) && (value->accept_callback))
-                    value->accept_callback(_obj,poll_event, value, events[i]);
+                    value->accept_callback(ptrNetBase, poll_event, value, events[i]);
                 /// connect callback if flag set
                 if ((value->cb_flags & CONNECT_CB) && (value->connect_callback))
-                    value->connect_callback(_obj, poll_event, value, events[i]);
+                    value->connect_callback(ptrNetBase, poll_event, value, events[i]);
                 /// read callback in any case
                 if (value->read_callback)
-                    value->read_callback(_obj, poll_event, value, events[i]);
+                    value->read_callback(ptrNetBase, poll_event, value, events[i]);
             }
             // when write possible
-            if (events[i].events & EPOLLOUT)
-            {
-                //LOG("found EPOLLOUT for event id(%d) and sock(%d)", i, events[i].data.fd);
+            if (events[i].events & EPOLLOUT) {
+                LOGD("found EPOLLOUT for event id(%d) and sock(%d)", i, events[i].data.fd);
                 value->cur_event &= EPOLLOUT;
                 if (value->write_callback)
-                    value->write_callback(_obj, poll_event, value, events[i]);
+                    value->write_callback(ptrNetBase, poll_event, value, events[i]);
             }
             // shutdown or error
-            if ( (events[i].events & 0x2000) || (events[i].events & EPOLLERR) || (events[i].events & EPOLLHUP))
-            {
-                if (events[i].events & 0x2000)
-                {
-                   // LOG("found EPOLLRDHUP for event id(%d) and sock(%d)", i, events[i].data.fd);
+            if ((events[i].events & 0x2000) || (events[i].events & EPOLLERR) ||
+                (events[i].events & EPOLLHUP)) {
+                if (events[i].events & 0x2000) {
+                    // LOGD("found EPOLLRDHUP for event id(%d) and sock(%d)", i, events[i].data.fd);
                     value->cur_event &= 0x2000;
-                }
-                else
-                {
-                 //   LOG("found EPOLLERR for event id(%d) and sock(%d)", i, events[i].data.fd);
+                } else {
+                    //   LOGD("found EPOLLERR for event id(%d) and sock(%d)", i, events[i].data.fd);
                     value->cur_event &= EPOLLERR;
                 }
                 if (value->close_callback)
-                    value->close_callback(_obj, poll_event, value, events[i]);
+                    value->close_callback(ptrNetBase, poll_event, value, events[i]);
             }
-        }
-        else // not in table
+        } else // not in table
         {
-            //LOG("WARNING: NOT FOUND hash table value for event id(%d) and sock(%d)", i, events[i].data.fd);
+            LOGD("WARNING: NOT FOUND hash table value for event id(%d) and sock(%d)", i,
+                 events[i].data.fd);
         }
     } // for
     return 0;
@@ -221,9 +196,8 @@ int poll_event_process(poll_event_t * poll_event)
  * Function to start the event loop which monitors all fds and callbacks accordingly
  * @note event loop runs indefinitely and can only be stopped by timeout callback, so to process the events only once use poll_event_process
  */
-void poll_event_loop(poll_event_t* poll_event)
-{
-//    LOGT("Entering the main event loop for epoll lib");
-    while(!poll_event_process(poll_event));
+void poll_event_loop(poll_event_t *poll_event) {
+    LOGD("Entering the main event loop for epoll lib");
+    while (!poll_event_process(poll_event));
 } 
 

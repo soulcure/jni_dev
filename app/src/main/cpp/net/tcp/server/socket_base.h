@@ -1,5 +1,5 @@
-#ifndef TCP_SERVER_H
-#define TCP_SERVER_H
+#ifndef __SocketBase_H__
+#define __SocketBase_H__
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -43,27 +43,17 @@ typedef struct {
     struct sockaddr_in addr; /* client's address information */
 } CLIENT;
 
-class TcpServer {
+class CSocketBase {
 public:
-    TcpServer();
+    CSocketBase();
 
-    virtual ~TcpServer();
-
-    bool SetBlock(int fd);
-
-    bool SetNonBlock(int fd);
-
-    bool SetNoDelay(int fd);
-
-    void SetReuse(int sock);
-
-    void SetLinger(int sock);
+    virtual ~CSocketBase();
 
     int CreateSocket(int type = SOCK_STREAM);
 
-    bool BindSocket(int sock, char *pAddr, int port);
+    bool BindSocket(int sock, const char *ip, int port);
 
-    bool ConnectSocket(int sock, const char *pAddr, int port);
+    bool ConnectSocket(int sock, const char *ip, int port);
 
     bool ListenSocket(int sock, int conn_num);
 
@@ -75,12 +65,22 @@ public:
 
     void Close();
 
+    static bool SetBlock(int sockFd);
+
+    static bool SetNonBlock(int sockFd);
+
+    static bool SetNoDelay(int sockFd);
+
+    static void SetReuse(int sockFd);
+
+    static void SetLinger(int sockFd);
+
 private:
     int m_nSocketErr;
     int m_fd;
 };
 
 
-#endif  //TCP_SERVER_H
+#endif
 
 
