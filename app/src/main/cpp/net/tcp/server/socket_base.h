@@ -57,11 +57,11 @@ public:
 
     bool ListenSocket(int sock, int conn_num);
 
-    int AcceptSocket(int sock, sockaddr_in &remote_addr);
+    int AcceptSocket(int sock, sockaddr_in &remote_address);
 
     int SendMsg(int sock, char *buf, int buf_len);
 
-    int SendToMsg(int sock, char *pAddr, int port, char *buf, int buf_len);
+    int SendToMsg(int sock, char *ip, int port, char *buf, int buf_len);
 
     void Close();
 
@@ -76,7 +76,7 @@ public:
     static void SetLinger(int sockFd);
 
 private:
-    int m_nSocketErr;
+    int m_nSocketErr{};
     int m_fd;
 };
 

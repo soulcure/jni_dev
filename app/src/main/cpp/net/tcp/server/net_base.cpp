@@ -29,9 +29,9 @@ void read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
         LOGD(" received data -> %s", buf);
 
         PDUBase pdu;
-        auto it = obj->recv_buffers.find(node->fd);
+        auto it = obj->receiveMapBuffers.find(node->fd);
 
-        if (obj->recv_buffers.end() != it) {
+        if (obj->receiveMapBuffers.end() != it) {
             if (it->second.length >= 0) {
                 std::shared_ptr<char> mergeBuf(new char[it->second.length + val + 1]);
                 memcpy(mergeBuf.get(), it->second.body.get(), it->second.length);
@@ -47,14 +47,14 @@ void read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
             ConnectBuffer connect_buffer;
             connect_buffer.body = newBuf;
             connect_buffer.length = val;
-            obj->recv_buffers.insert({node->fd, connect_buffer});
-            it = obj->recv_buffers.find(node->fd);
+            obj->receiveMapBuffers.insert({node->fd, connect_buffer});
+            it = obj->receiveMapBuffers.find(node->fd);
         }
 
         int result = 0;
         while ((result = obj->OnPduParse(buf, val, pdu)) != 0) {
             if (result < 0) {
-                obj->recv_buffers.erase(node->fd);
+                obj->receiveMapBuffers.erase(node->fd);
                 break;
             } else if (result > 0) {
                 //read some data(a full package, remove those buffers)
@@ -64,7 +64,7 @@ void read_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
                 it->second.length -= result;
                 val -= result;
                 //call callback.
-                obj->OnRecv(node->fd, pdu);
+                obj->OnReceive(node->fd, pdu);
                 buf = it->second.body.get();
             }
         }
@@ -76,11 +76,11 @@ void close_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node
               struct epoll_event ev) {
     // close the socket, we are done with it
     poll_event_remove(poll_event, node->fd);
-    obj->recv_buffers.erase(node->fd);
+    obj->receiveMapBuffers.erase(node->fd);
     //
     close(node->fd);
     LOGD("close_cb socket:%d", node->fd);
-    obj->OnDisconn(node->fd);
+    obj->OnDisconnect(node->fd);
 }
 
 void accept_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *node,
@@ -104,7 +104,7 @@ void accept_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *nod
     char ip[20] = {0};
     inet_ntop(AF_INET, (void *) &(socket_address.sin_addr.s_addr), ip, 16);
 
-    obj->OnConn(ip, port);
+    obj->OnConnect(ip, port);
 }
 
 //time out function
@@ -136,29 +136,29 @@ NetBase::~NetBase() {
     m_Sock.Close();
 }
 
-int NetBase::ProcessListenSock() {
+int NetBase::createListenSocket() {
     SignalHandle();
-    int sockId = m_Sock.CreateSocket();
-    if (sockId > 0) {
+    int sockFd = m_Sock.CreateSocket();
+    if (sockFd > 0) {
         SetObj(this);
         //SOCKET在CLOSE时候是否等待缓冲区发送完成
-        m_Sock.SetLinger(sockId);
+        m_Sock.SetLinger(sockFd);
 
         //非阻塞模式下调用accept()函数立即返回
-        m_Sock.SetNonBlock(sockId);
+        m_Sock.SetNonBlock(sockFd);
 
         //SO_REUSEADDR是让端口释放后立即就可以被再次使用
-        m_Sock.SetReuse(sockId);
+        m_Sock.SetReuse(sockFd);
 
-        m_Sock.BindSocket(sockId, m_ip.c_str(), m_port);
+        m_Sock.BindSocket(sockFd, m_ip.c_str(), m_port);
 
-        m_Sock.ListenSocket(sockId, listen_num);
+        m_Sock.ListenSocket(sockFd, listen_num);
     }
 
-    return sockId;
+    return sockFd;
 }
 
-void NetBase::ProcessEpoll(int sockId) {
+void NetBase::addToEpoll(int sockFd) {
     poll_event_t *pPe = poll_event_new(1000);
     if (!pPe) {
         LOGD("pPe=null");
@@ -168,7 +168,7 @@ void NetBase::ProcessEpoll(int sockId) {
     pPe->timeout_callback = timeout_cb;
     poll_event_element_t *p;
     // add sock to poll event
-    poll_event_add(pPe, sockId, EPOLLIN, &p);
+    poll_event_add(pPe, sockFd, EPOLLIN, &p);
     // set callbacks
     //p->read_callback = read_cb;
     p->accept_callback = accept_cb;
@@ -180,37 +180,35 @@ void NetBase::ProcessEpoll(int sockId) {
     use_the_force(pPe);
 }
 
-void NetBase::Init() {}
 
 void NetBase::StartServer(const std::string &ip, int port) {
     m_ip = ip;
     m_port = port;
-    Init();
 
     LOGD("StartServer ip:[%s], port:[%d]", ip.c_str(), port);
-    int iSock = ProcessListenSock();
+    int iSock = createListenSocket();
     if (iSock < 1) {
         return;
     }
 
-    ProcessEpoll(iSock);
+    addToEpoll(iSock);
 }
 
-void NetBase::OnConn(const char *ip, short port) {
+void NetBase::OnConnect(const char *ip, short port) {
 
 }
 
-void NetBase::OnDisconn(int sockId) {
+void NetBase::OnDisconnect(int sockFd) {
 }
 
 
-bool NetBase::Send(int sockId, PDUBase &_data) {
+bool NetBase::Send(int sockFd, PDUBase &pdu) {
     LOGD("NetBase::Send...");
-    std::lock_guard<std::mutex> lk1(send_mutex);
+    std::lock_guard<std::mutex> lockGuard(send_mutex);
     char *buf = nullptr;
-    int len = OnPduPack(_data, buf);
+    int len = OnPduPack(pdu, buf);
     if (len > 0) {
-        int ret = write(sockId, buf, len);
+        int ret = write(sockFd, buf, len);
         if (ret == -1) {
             LOGD("errno:[%d]", errno);
             char *msg = strerror(errno);
@@ -223,9 +221,9 @@ bool NetBase::Send(int sockId, PDUBase &_data) {
     return false;
 }
 
-bool NetBase::Send(int sockId, char *buff, int len) {
+bool NetBase::Send(int sockFd, char *buff, int len) {
     if (len > 0) {
-        int ret = write(sockId, buff, len);
+        int ret = write(sockFd, buff, len);
         if (ret == -1) {
             LOGD("errno:[%d]", errno);
             char *msg = strerror(errno);
