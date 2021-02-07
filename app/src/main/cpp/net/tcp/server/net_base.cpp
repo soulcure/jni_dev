@@ -138,48 +138,25 @@ NetBase::~NetBase() {
 
 int NetBase::createListenSocket() {
     SignalHandle();
-    int sockFd = m_Sock.CreateSocket();
+    int sockFd = CSocketBase::CreateSocket();
     if (sockFd > 0) {
         SetObj(this);
         //SOCKET在CLOSE时候是否等待缓冲区发送完成
-        m_Sock.SetLinger(sockFd);
+        CSocketBase::SetLinger(sockFd);
 
         //非阻塞模式下调用accept()函数立即返回
-        m_Sock.SetNonBlock(sockFd);
+        CSocketBase::SetNonBlock(sockFd);
 
         //SO_REUSEADDR是让端口释放后立即就可以被再次使用
-        m_Sock.SetReuse(sockFd);
+        CSocketBase::SetReuse(sockFd);
 
-        m_Sock.BindSocket(sockFd, m_ip.c_str(), m_port);
+        CSocketBase::BindSocket(sockFd, m_ip.c_str(), m_port);
 
-        m_Sock.ListenSocket(sockFd, listen_num);
+        CSocketBase::ListenSocket(sockFd, listen_num);
     }
 
     return sockFd;
 }
-
-void NetBase::addToEpoll(int sockFd) {
-    poll_event_t *pPe = poll_event_new(1000);
-    if (!pPe) {
-        LOGD("pPe=null");
-        return;
-    }
-    // set timeout callback
-    pPe->timeout_callback = timeout_cb;
-    poll_event_element_t *p;
-    // add sock to poll event
-    poll_event_add(pPe, sockFd, EPOLLIN, &p);
-    // set callbacks
-    //p->read_callback = read_cb;
-    p->accept_callback = accept_cb;
-    p->close_callback = close_cb;
-    // enable accept callback
-    p->cb_flags |= ACCEPT_CB;
-    // start the event loop
-    LOGD("1111");
-    use_the_force(pPe);
-}
-
 
 void NetBase::StartServer(const std::string &ip, int port) {
     m_ip = ip;
@@ -193,6 +170,31 @@ void NetBase::StartServer(const std::string &ip, int port) {
 
     addToEpoll(iSock);
 }
+
+
+void NetBase::addToEpoll(int sockFd) {
+    poll_event_t *p_event = poll_event_new(1000);//1000 timeout
+    if (!p_event) {
+        LOGD("pPe=null");
+        return;
+    }
+    // set timeout callback
+    p_event->timeout_callback = timeout_cb;
+
+    poll_event_element_t *p;
+    // add sock to poll event
+    poll_event_add(p_event, sockFd, EPOLLIN, &p);
+    // set callbacks
+    //p->read_callback = read_cb;
+    p->accept_callback = accept_cb;
+    p->close_callback = close_cb;
+    // enable accept callback
+    p->cb_flags |= ACCEPT_CB;
+    // start the event loop
+    LOGD("addToEpoll...");
+    poll_event_loop(p_event);
+}
+
 
 void NetBase::OnConnect(const char *ip, short port) {
 

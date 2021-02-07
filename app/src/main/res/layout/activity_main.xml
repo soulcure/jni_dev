@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="172.20.144.118" />
+            android:text="192.168.000.105" />
 
         <Button
             android:id="@+id/btn_connect"

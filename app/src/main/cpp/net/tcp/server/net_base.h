@@ -84,7 +84,7 @@ public:
     *
     * @param
     */
-    void addToEpoll(int sockFd);
+    static void addToEpoll(int sockFd);
 
     /*
      *发送

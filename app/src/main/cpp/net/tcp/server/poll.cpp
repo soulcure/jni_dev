@@ -20,7 +20,7 @@ NetBase *ptrNetBase = nullptr;
  */
 poll_event_element_t *poll_event_element_new(int fd, uint32_t events) {
     LOGD("Creating a new poll event element");
-    auto *elem = (poll_event_element_t *) calloc(1, poll_event_element_s);
+    auto *elem = (poll_event_element_t *) calloc(1, sizeof(poll_event_element_t));
     if (elem) {
         elem->fd = fd;
         elem->events = events;
@@ -45,15 +45,16 @@ void poll_event_element_delete(poll_event_element_t *elem) {
  * @retunrs poll event object on sucess
  */
 poll_event_t *poll_event_new(int timeout) {
-    sp_nodes = NULL;
-    poll_event_t *poll_event = (poll_event_t *) calloc(1, poll_event_s);
+    sp_nodes = nullptr;
+    //calloc() 会自动进行初始化，每一位都初始化为零
+    auto *poll_event = (poll_event_t *) calloc(1, sizeof(poll_event_t));
     if (!poll_event) {
         LOGD("calloc failed at poll_event");
-        return NULL; // No Memory
+        return nullptr; // No Memory
     }
 
     poll_event->timeout = timeout;
-    poll_event->epoll_fd = epoll_create(MAX_EVENTS);
+    poll_event->epoll_fd = epoll_create(MAX_EVENTS);//数量的最大值。不是fd的最大值
     LOGD("Created a new poll event");
     return poll_event;
 }
