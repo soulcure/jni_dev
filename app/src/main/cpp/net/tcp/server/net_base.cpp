@@ -101,7 +101,7 @@ void accept_cb(NetBase *obj, poll_event_t *poll_event, poll_event_element_t *nod
     p->close_callback = close_cb;
 
     short port = ntohs(socket_address.sin_port);
-    char ip[20] = {0};
+    char ip[20] = {0}; // 存放点分十进制IP地址
     inet_ntop(AF_INET, (void *) &(socket_address.sin_addr.s_addr), ip, 16);
 
     obj->OnConnect(ip, port);

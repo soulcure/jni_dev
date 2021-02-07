@@ -115,6 +115,7 @@ int poll_event_remove(poll_event_t *poll_event, int fd) {
     HASH_FIND_INT(sp_nodes, &fd, elem);
     if (elem) {
         HASH_DEL(sp_nodes, elem);
+        poll_event_element_delete(elem);  //colin add 2021/2/8
         close(fd);
         epoll_ctl(poll_event->epoll_fd, EPOLL_CTL_DEL, fd, nullptr);
     }
