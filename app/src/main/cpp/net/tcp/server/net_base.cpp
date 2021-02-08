@@ -172,17 +172,18 @@ void NetBase::StartServer(const std::string &ip, int port) {
 
 
 void NetBase::addToEpoll(int sockFd) {
-    poll_event_t *p_event = poll_event_new(1000);//1000 timeout
-    if (!p_event) {
-        LOGD("pPe=null");
+    // create a poll event object, with time out of 1 sec
+    poll_event_t *pe = poll_event_new(1000);
+    if (!pe) {
+        LOGE("create a poll event object is null");
         return;
     }
     // set timeout callback
-    p_event->timeout_callback = timeout_cb;
+    pe->timeout_callback = timeout_cb;
 
     poll_event_element_t *p;
     // add sock to poll event
-    poll_event_add(p_event, sockFd, EPOLLIN, &p);
+    poll_event_add(pe, sockFd, EPOLLIN, &p);
     // set callbacks
     //p->read_callback = read_cb;
     p->accept_callback = accept_cb;
@@ -190,8 +191,8 @@ void NetBase::addToEpoll(int sockFd) {
     // enable accept callback
     p->cb_flags |= ACCEPT_CB;
     // start the event loop
+    poll_event_loop(pe);
     LOGD("addToEpoll...");
-    poll_event_loop(p_event);
 }
 
 
