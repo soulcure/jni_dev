@@ -126,7 +126,6 @@ int timeout_cb(NetBase *obj, poll_event_t *poll_event) {
 
 
 NetBase::NetBase() {
-    listen_num = 1;
     m_ip = "127.0.0.1";
     m_port = default_port;
 }
@@ -151,7 +150,8 @@ int NetBase::createListenSocket() {
 
         CSocketBase::BindSocket(sockFd, m_ip.c_str(), m_port);
 
-        CSocketBase::ListenSocket(sockFd, listen_num);
+        //10 ,backlog 为请求队列的最大长度。
+        CSocketBase::ListenSocket(sockFd, 10);
     }
 
     return sockFd;

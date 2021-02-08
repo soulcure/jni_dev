@@ -107,8 +107,6 @@ public:
 protected:
     CSocketBase m_Sock;
 
-    /* SOMAXCONN 为系统默认的backlog */
-    int listen_num;        //backlog 为请求队列的最大长度。
     std::string m_ip;
     int m_port;            //服务端监听端口
 
