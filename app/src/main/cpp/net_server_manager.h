@@ -18,6 +18,8 @@ public:
 
     void create_tcp_server(int port);
 
+    void Open(int port);
+
     static net_server_manager &Get() {
         static net_server_manager instance;
         return instance;
