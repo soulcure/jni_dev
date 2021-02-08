@@ -8,6 +8,8 @@ public class UtilJni {
     //***************以下为java调用 C++接口******************//
     public static native String stringFromJNI();
 
+    public static native void openTcpServer(int port);
+
     public static native void tcpFromJNI(String ip, int port);
 
     public static native void sendString(String message);

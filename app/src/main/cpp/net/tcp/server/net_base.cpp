@@ -157,11 +157,10 @@ int NetBase::createListenSocket() {
     return sockFd;
 }
 
-void NetBase::StartServer(const std::string &ip, int port) {
-    m_ip = ip;
+void NetBase::StartServer(int port) {
     m_port = port;
 
-    LOGD("StartServer ip:[%s], port:[%d]", ip.c_str(), port);
+    LOGD("StartServer ip:[%s], port:[%d]", m_ip.c_str(), port);
     int sockFd = createListenSocket();
     if (sockFd < 1) {
         return;
@@ -201,8 +200,12 @@ void NetBase::OnConnect(const char *ip, short port) {
 }
 
 void NetBase::OnDisconnect(int sockFd) {
+
 }
 
+void NetBase::OnReceive(int sockFd, PDUBase &pack) {
+
+}
 
 bool NetBase::Send(int sockFd, PDUBase &pdu) {
     LOGD("NetBase::Send...");

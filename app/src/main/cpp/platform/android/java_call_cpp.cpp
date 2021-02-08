@@ -5,6 +5,7 @@
 #include "../../net/tcp/client/tcp_client.h"
 #include "../../log/log_util.h"
 #include "JniHelper.h"
+#include "../../net_server_manager.h"
 
 extern "C"
 {
@@ -27,8 +28,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     return JNI_VERSION_1_6;
 }
 
-JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv*  env, jclass clazz,
-        jobject context) {
+JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_openTcpServer(JNIEnv *env, jclass clazz,
+                                                                    jint port) {
+    net_server_manager::Get().create_tcp_server(port);
+}
+
+
+JNIEXPORT void JNICALL Java_com_coocaa_socket_UtilJni_nativeSetContext(JNIEnv *env, jclass clazz,
+                                                                       jobject context) {
     JniHelper::setClassLoaderFrom(context);
 }
 

@@ -1,6 +1,5 @@
 package com.coocaa.socket;
 
-import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +16,8 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EditText et_ip;
+    private String ip;
+    private int port = 24000;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -29,11 +30,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         et_ip = findViewById(R.id.et_ip);
 
+        ip = DeviceUtil.getLocalIPAddress(this);
+        TextView tv_ip = findViewById(R.id.tv_ip);
+        tv_ip.setText(ip);
+
         // Example of a call to a native method
         TextView tv = findViewById(R.id.sample_text);
 
         tv.setText(UtilJni.stringFromJNI());
 
+        findViewById(R.id.btn_server).setOnClickListener(this);
         findViewById(R.id.btn_connect).setOnClickListener(this);
         findViewById(R.id.btn_string).setOnClickListener(this);
         findViewById(R.id.btn_bytes).setOnClickListener(this);
@@ -46,9 +52,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         int id = v.getId();
         switch (id) {
+            case R.id.btn_server: {
+                UtilJni.openTcpServer(port);
+            }
+            break;
             case R.id.btn_connect: {
                 String ip = et_ip.getText().toString();
-                int port = 34000;
                 UtilJni.tcpFromJNI(ip, port);
             }
             break;

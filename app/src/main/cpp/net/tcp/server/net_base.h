@@ -39,38 +39,38 @@ public:
     * @析构函数
     *
     */
-    virtual ~NetBase();
+    ~NetBase();
 
     /***********************************************************
     * @接收数据回调处理函数
     *
     */
-    virtual void OnReceive(int sockFd, PDUBase &pack) = 0;
+    void OnReceive(int sockFd, PDUBase &pack);
 
     /***********************************************************
     * @接收请求时回调处理函数
     *
     */
-    virtual void OnConnect(const char *ip, short port);
+    void OnConnect(const char *ip, short port);
 
     /***********************************************************
     * @接收请求时回调处理函数
     *
     */
-    virtual void OnDisconnect(int sockFd);
+    void OnDisconnect(int sockFd);
 
     /***********************************************************
     * @Epoll超时回调处理函数
     *
     */
-    virtual void OnTimeOut();
+    void OnTimeOut();
 
     /***********************************************************
     * @ 服务器启动
     *
     * @param
     */
-    void StartServer(const std::string &ip, int port = default_port);
+    void StartServer(int port = default_port);
 
     /***********************************************************
     * @ 监听套接字初始化处理

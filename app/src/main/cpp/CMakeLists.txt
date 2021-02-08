@@ -25,6 +25,7 @@ add_library( # Sets the name of the library.
         platform/android/java_call_cpp.cpp
         platform/android/JniHelper.cpp
         sdk_manager.cpp
+        net_server_manager.cpp
 
         net/pdu_util.cpp
         net/pdu_base.cpp
