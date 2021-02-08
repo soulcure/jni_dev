@@ -40,6 +40,8 @@ struct poll_event_element {
     uint32_t cur_event;
     /** only used to enable accept and listen callbacks */
     uint8_t cb_flags;
+
+    /** makes this structure hashable */
     UT_hash_handle hh;
 };
 

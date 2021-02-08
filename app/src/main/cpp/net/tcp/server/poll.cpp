@@ -8,9 +8,14 @@
 #include "../../../log/log_util.h"
 
 
-static poll_event_element_t *sp_nodes;
+static poll_event_element_t *sp_nodes = nullptr;
 NetBase *ptrNetBase = nullptr;
 
+/**
+ * License GPLv3+
+ */
+
+//poll_event_element functions
 /**
  * Function to allocate a new poll event element
  * @param fd the file descriptor to watch
@@ -45,7 +50,6 @@ void poll_event_element_delete(poll_event_element_t *elem) {
  * @retunrs poll event object on sucess
  */
 poll_event_t *poll_event_new(int timeout) {
-    sp_nodes = nullptr;
     //calloc() 会自动进行初始化，每一位都初始化为零
     auto *poll_event = (poll_event_t *) calloc(1, sizeof(poll_event_t));
     if (!poll_event) {
@@ -173,13 +177,13 @@ int poll_event_process(poll_event_t *poll_event) {
                     value->write_callback(ptrNetBase, poll_event, value, events[i]);
             }
             // shutdown or error
-            if ((events[i].events & 0x2000) || (events[i].events & EPOLLERR) ||
+            if ((events[i].events & EPOLLRDHUP) || (events[i].events & EPOLLERR) ||
                 (events[i].events & EPOLLHUP)) {
-                if (events[i].events & 0x2000) {
-                    // LOGD("found EPOLLRDHUP for event id(%d) and sock(%d)", i, events[i].data.fd);
-                    value->cur_event &= 0x2000;
+                if (events[i].events & EPOLLRDHUP) {
+                    LOGD("found EPOLLRDHUP for event id(%d) and sock(%d)", i, events[i].data.fd);
+                    value->cur_event &= EPOLLRDHUP;
                 } else {
-                    //   LOGD("found EPOLLERR for event id(%d) and sock(%d)", i, events[i].data.fd);
+                    LOGD("found EPOLLERR for event id(%d) and sock(%d)", i, events[i].data.fd);
                     value->cur_event &= EPOLLERR;
                 }
                 if (value->close_callback)

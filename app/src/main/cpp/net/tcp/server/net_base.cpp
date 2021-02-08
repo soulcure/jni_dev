@@ -117,10 +117,9 @@ int timeout_cb(NetBase *obj, poll_event_t *poll_event) {
         // increment and print the count
         int *value = (int *) poll_event->data;
         *value += 1;
-        //LOG("time out number %d", *value);
-        // printf("tick (%d)\n", *value);
+        LOGD("time out number [%d]", *value);
     }
-    //¶àÌ¬
+    //创建epoll超时
     obj->OnTimeOut();
     return 0;
 }
@@ -163,12 +162,12 @@ void NetBase::StartServer(const std::string &ip, int port) {
     m_port = port;
 
     LOGD("StartServer ip:[%s], port:[%d]", ip.c_str(), port);
-    int iSock = createListenSocket();
-    if (iSock < 1) {
+    int sockFd = createListenSocket();
+    if (sockFd < 1) {
         return;
     }
 
-    addToEpoll(iSock);
+    addToEpoll(sockFd);
 }
 
 
