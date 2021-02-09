@@ -23,6 +23,14 @@ include_directories(${PROJECT_SOURCE_DIR}/net/tcp/server)
 include_directories(${PROJECT_SOURCE_DIR}/platform/android)
 include_directories(${PROJECT_SOURCE_DIR}/util)
 
+#指定源文件目录位置
+aux_source_directory(. CPP_ROOT)
+aux_source_directory(./log CPP_LOG)
+aux_source_directory(./net CPP_PDU)
+aux_source_directory(./net/tcp/client CPP_NET_CLIENT)
+aux_source_directory(./net/tcp/server CPP_NET_SERVER)
+aux_source_directory(./platform/android CPP_ANDROID)
+
 add_library( # Sets the name of the library.
         tcp-lib
 
@@ -30,19 +38,12 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        log/log_util.cpp
-        platform/android/java_call_cpp.cpp
-        platform/android/JniHelper.cpp
-        sdk_manager.cpp
-        net_server_manager.cpp
-
-        net/pdu_util.cpp
-        net/pdu_base.cpp
-        net/tcp/client/tcp_client.cpp
-
-        net/tcp/server/socket_base.cpp
-        net/tcp/server/net_base.cpp
-        net/tcp/server/poll.cpp
+        ${CPP_ROOT}
+        ${CPP_LOG}
+        ${CPP_PDU}
+        ${CPP_NET_CLIENT}
+        ${CPP_NET_SERVER}
+        ${CPP_ANDROID}
         )
 
 # Searches for a specified prebuilt library and stores the path as a
