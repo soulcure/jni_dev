@@ -4,8 +4,8 @@
 #include <jni.h>
 #include <string>
 #include <iostream>
-#include "android/log.h"
-#include "../../sdk_manager.h"
+
+#include "sdk_manager.h"
 
 //第一个参数 JNIEnv
 //JNIEnv，Java本地接口环境(Java Native Interface Environment）

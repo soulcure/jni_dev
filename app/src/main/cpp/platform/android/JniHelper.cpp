@@ -1,8 +1,9 @@
 #include "JniHelper.h"
-#include <android/log.h>
+
 #include <string>
 #include <pthread.h>
-#include "../../log/log_util.h"
+
+#include "log_util.h"
 
 
 #define  CLASS_NAME "com/coocaa/socket/UtilJni"

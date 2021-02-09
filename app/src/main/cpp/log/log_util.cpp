@@ -3,8 +3,7 @@
 //
 
 #include "log_util.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
 
 #define BUF_MAX 1024
 

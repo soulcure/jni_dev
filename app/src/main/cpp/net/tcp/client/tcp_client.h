@@ -8,8 +8,8 @@
 #include <condition_variable>    // std::condition_variable
 #include <functional>   // std::mem_fn
 
-#include "../../pdu_base.h"
-#include "../../pdu_util.h"
+#include "pdu_base.h"
+#include "pdu_util.h"
 
 class TcpClient : public PduUtil {
 public:

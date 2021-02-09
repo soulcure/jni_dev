@@ -6,9 +6,9 @@
 #include <memory>   //shared_ptr
 #include <mutex>
 
-#include "../../../log/log_util.h"
-#include "../../pdu_base.h"
-#include "../../pdu_util.h"
+#include "log_util.h"
+#include "pdu_base.h"
+#include "pdu_util.h"
 #include "socket_base.h"
 
 

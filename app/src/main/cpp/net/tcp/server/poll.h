@@ -1,9 +1,9 @@
 #ifndef POLL_H
 #define POLL_H
-
-#include "../../../util/uthash.h"
-#include "net_base.h"
 #include <sys/epoll.h>
+
+#include "uthash.h"
+#include "net_base.h"
 
 #define MAX_EVENTS 100
 #define CALLBACK(x) void (*x) (NetBase *, poll_event_t *, poll_event_element_t *, struct epoll_event)

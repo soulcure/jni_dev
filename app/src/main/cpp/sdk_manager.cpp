@@ -3,7 +3,7 @@
 //
 
 #include "sdk_manager.h"
-#include "platform/android/JniHelper.h"
+#include "JniHelper.h"
 
 sdk_manager::sdk_manager() {
     LOGD("sdk_manager constructor");

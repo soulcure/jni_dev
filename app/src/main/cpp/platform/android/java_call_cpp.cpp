@@ -1,11 +1,13 @@
 ﻿#include "java_call_cpp.h"
+
 #include <jni.h>
 #include <string>
 #include <iostream>
-#include "../../net/tcp/client/tcp_client.h"
-#include "../../log/log_util.h"
+
+#include "tcp_client.h"
+#include "log_util.h"
 #include "JniHelper.h"
-#include "../../net_server_manager.h"
+#include "net_server_manager.h"
 
 extern "C"
 {

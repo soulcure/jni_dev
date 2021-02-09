@@ -5,9 +5,9 @@
 #ifndef SOCKET_SDK_MANAGER_H
 #define SOCKET_SDK_MANAGER_H
 
-#include "net/tcp/client/tcp_client.h"
-#include "log/log_util.h"
-#include "net/pdu_base.h"
+#include "tcp_client.h"
+#include "log_util.h"
+#include "pdu_base.h"
 
 class sdk_manager {
 public:

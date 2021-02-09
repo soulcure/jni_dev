@@ -5,10 +5,10 @@
 #ifndef NET_SERVER_MANAGER_H
 #define NET_SERVER_MANAGER_H
 
-#include "net/tcp/client/tcp_client.h"
-#include "log/log_util.h"
-#include "net/pdu_base.h"
-#include "net/tcp/server/net_base.h"
+#include "tcp_client.h"
+#include "log_util.h"
+#include "pdu_base.h"
+#include "net_base.h"
 
 class net_server_manager {
 public:

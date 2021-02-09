@@ -4,7 +4,7 @@
 
 #include <thread>
 #include "net_server_manager.h"
-#include "platform/android/JniHelper.h"
+#include "JniHelper.h"
 
 net_server_manager::net_server_manager() {
     LOGD("net_server_manager constructor");

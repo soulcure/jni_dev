@@ -14,6 +14,15 @@ project("socket")
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+#指定头文件目录位置
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/log)
+include_directories(${PROJECT_SOURCE_DIR}/net)
+include_directories(${PROJECT_SOURCE_DIR}/net/tcp/client)
+include_directories(${PROJECT_SOURCE_DIR}/net/tcp/server)
+include_directories(${PROJECT_SOURCE_DIR}/platform/android)
+include_directories(${PROJECT_SOURCE_DIR}/util)
+
 add_library( # Sets the name of the library.
         tcp-lib
 

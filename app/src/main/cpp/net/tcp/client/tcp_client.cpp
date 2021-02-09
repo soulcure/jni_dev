@@ -7,9 +7,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <thread>
-#include <iostream>
-#include <cerrno>
-#include "../../../log/log_util.h"
+
+#include "log_util.h"
+
 
 #define BUFF_MAX 1024*512   //512KB
 #define BUFF_LENGTH 1024*5  //5KB
