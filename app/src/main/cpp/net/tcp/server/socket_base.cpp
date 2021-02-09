@@ -54,8 +54,9 @@ int CSocketBase::CreateSocket(int type) {
 bool CSocketBase::BindSocket(int sock, const char *ip, int port) {
     struct sockaddr_in socket_address{};
     socket_address.sin_family = AF_INET;
-    //socket_address.sin_addr.s_addr = inet_addr(pAddr);  //将一个点间隔地址 转换整数形式的IP地址
-    inet_pton(AF_INET, ip, &socket_address.sin_addr);//将一个点间隔地址 转换整数形式的IP地址
+    //socket_address.sin_addr.s_addr = inet_addr(ip);  //将一个点间隔地址 转换整数形式的IP地址  //NO
+    //inet_pton(AF_INET, ip, &socket_address.sin_addr);//将一个点间隔地址 转换整数形式的IP地址  //NO
+    socket_address.sin_addr.s_addr = htonl(INADDR_ANY);  //OK
 
     socket_address.sin_port = htons(port);
 
