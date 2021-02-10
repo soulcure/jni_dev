@@ -134,10 +134,10 @@ int poll_event_remove(poll_event_t *poll_event, int fd) {
  */
 int poll_event_process(poll_event_t *poll_event) {
     struct epoll_event events[MAX_EVENTS];
-    LOGD("May the source be with you!!");
+    //LOGD("May the source be with you!!");
     int fds = epoll_wait(poll_event->epoll_fd, events, MAX_EVENTS, poll_event->timeout);
     if (fds == 0) {
-        LOGD("event loop timed out");
+        //LOGD("event loop timed out");
         if (poll_event->timeout_callback) {
             if (poll_event->timeout_callback(ptrNetBase, poll_event)) {
                 return -1;

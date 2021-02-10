@@ -196,15 +196,20 @@ void NetBase::addToEpoll(int sockFd) {
 
 
 void NetBase::OnConnect(const char *ip, short port) {
-
+    //unsigned short 对应%hu（十进制） %ho（八进制） %hx（十六进制）
+    LOGD("tcpServer OnConnect client :[%s]:[%hu]", ip, port);
 }
 
 void NetBase::OnDisconnect(int sockFd) {
-
+    LOGD("tcpServer OnDisconnect client sockFd:[%d]", sockFd);
 }
 
 void NetBase::OnReceive(int sockFd, PDUBase &pack) {
+    int length = pack.length;
+    char *body = pack.body.get();
+    body[length] = 0;
 
+    LOGD("tcpServer OnReceive client sockFd:[%d] and body:\n%s", sockFd, body);
 }
 
 bool NetBase::Send(int sockFd, PDUBase &pdu) {
