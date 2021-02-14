@@ -24,6 +24,11 @@ sdk_manager::~sdk_manager() {
     delete tcp_client;
 }
 
+sdk_manager &sdk_manager::Get() {
+    static sdk_manager instance;
+    return instance;
+}
+
 
 void sdk_manager::create_tcp_client(const char *ip, int port) {
     LOGD("TcpClient to [%s]:[%d]", ip, port);

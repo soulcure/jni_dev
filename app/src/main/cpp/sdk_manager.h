@@ -11,9 +11,6 @@
 
 class sdk_manager {
 public:
-    sdk_manager(const sdk_manager &) = delete;
-
-    sdk_manager operator=(const sdk_manager &) = delete;
 
     void create_tcp_client(const char *ip, int port);
 
@@ -21,13 +18,16 @@ public:
 
     void send_bytes(int length, const char *message);
 
-    static sdk_manager &Get() {
-        static sdk_manager instance;
-        return instance;
-    }
+    static sdk_manager &Get();
 
 
 private:
+    sdk_manager(const sdk_manager &) = delete;
+
+    sdk_manager(const sdk_manager &&) = delete;
+
+    sdk_manager operator=(const sdk_manager &) = delete;
+
     sdk_manager();
 
     ~sdk_manager();

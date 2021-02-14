@@ -16,6 +16,11 @@ net_server_manager::~net_server_manager() {
     delete tcp_server;
 }
 
+net_server_manager &net_server_manager::Get() {
+    static net_server_manager instance;
+    return instance;
+}
+
 
 void net_server_manager::create_tcp_server(int port) {
     LOGD("TcpServer to:[%d]", port);

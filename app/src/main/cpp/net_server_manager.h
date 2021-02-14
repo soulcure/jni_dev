@@ -12,21 +12,22 @@
 
 class net_server_manager {
 public:
-    net_server_manager(const net_server_manager &) = delete;
 
-    net_server_manager operator=(const net_server_manager &) = delete;
 
     void create_tcp_server(int port);
 
     void Open(int port);
 
-    static net_server_manager &Get() {
-        static net_server_manager instance;
-        return instance;
-    }
+    static net_server_manager &Get();
 
 
 private:
+    net_server_manager(const net_server_manager &) = delete;
+
+    net_server_manager operator=(const net_server_manager &) = delete;
+
+    net_server_manager operator=(const net_server_manager &&) = delete;
+
     net_server_manager();
 
     ~net_server_manager();
