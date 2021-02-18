@@ -19,9 +19,7 @@ bool CSocketBase::SetBlock(int sockFd) {
 }
 
 bool CSocketBase::SetNonBlock(int sockFd) {
-    int flag = fcntl(sockFd, F_GETFL);
-    flag = flag | O_NONBLOCK;
-    return fcntl(sockFd, F_SETFL, flag) >= 0;
+    return fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL) | O_NONBLOCK) >= 0;
 }
 
 bool CSocketBase::SetNoDelay(int sockFd) {

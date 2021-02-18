@@ -5,6 +5,7 @@
 #include <thread>
 #include "net_server_manager.h"
 #include "JniHelper.h"
+//#include "tcpServer.h"
 
 net_server_manager::net_server_manager() {
     LOGD("net_server_manager constructor");
@@ -31,6 +32,7 @@ void net_server_manager::create_tcp_server(int port) {
 void net_server_manager::Open(int port) {
     LOGD("TcpServer Open :[%d]", port);
     tcp_server->StartServer(port);
+    //start("127.0.0.1", port);
 }
 
 

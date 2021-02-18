@@ -144,6 +144,7 @@ int poll_event_process(poll_event_t *poll_event) {
             }
         }
     }
+    LOGE("poll_event_process fds:[%d])", fds);
     int i = 0;
     for (; i < fds; i++) {
         poll_event_element_t *value = nullptr;

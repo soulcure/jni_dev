@@ -165,7 +165,7 @@ void NetBase::StartServer(int port) {
     if (sockFd < 1) {
         return;
     }
-
+    LOGD("addToEpoll sockFd:[%d]",sockFd);
     addToEpoll(sockFd);
 }
 
@@ -191,7 +191,6 @@ void NetBase::addToEpoll(int sockFd) {
     p->cb_flags |= ACCEPT_CB;
     // start the event loop
     poll_event_loop(pe);
-    LOGD("addToEpoll...");
 }
 
 
